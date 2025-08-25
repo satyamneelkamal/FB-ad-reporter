@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/mnt/c/Users/user/Desktop/FB Ad Analysis/my-app"
+      ],
+      "env": {}
+    },
+    "memory": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ],
+      "env": {}
+    },
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--project-ref=elyqwcbhphgapuuuabwu"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "sbp_35eec82c46f73ad086e34ae1079cf399c663510f"
+      }
+    }
+  }
+}

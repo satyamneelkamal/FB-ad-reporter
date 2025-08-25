@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__supabase__apply_migration",
+      "mcp__supabase__execute_sql",
+      "Bash(curl:*)",
+      "Bash(npm run dev:*)"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "filesystem",
+    "memory",
+    "supabase"
+  ],
+  "enableAllProjectMcpServers": true
+}

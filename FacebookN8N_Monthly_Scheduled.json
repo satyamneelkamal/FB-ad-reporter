@@ -1,0 +1,585 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// Set current period for monthly data collection (last 30 days)\nconst today = new Date();\nconst monthAgo = new Date(today);\nmonthAgo.setDate(monthAgo.getDate() - 30);\n\n// Get previous month info for filename\nconst prevMonth = new Date(today);\nprevMonth.setMonth(prevMonth.getMonth() - 1);\nconst monthYear = prevMonth.toISOString().slice(0, 7); // YYYY-MM\n\nconst currentPeriod = {\n  since: monthAgo.toISOString().split('T')[0],  // 30 days ago\n  until: today.toISOString().split('T')[0]     // Today\n};\n\nreturn {\n  json: {\n    currentPeriod,\n    collectionType: 'monthly',\n    monthIdentifier: monthYear,\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "id": "87f15560-59c6-4f17-83ec-20d9a6f28faf",
+      "name": "Set Monthly Date Range",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        4000,
+        1860
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "graphApiVersion": "v20.0",
+        "node": "act_555167645017860",
+        "edge": "insights",
+        "options": {
+          "queryParametersJson": "={\n  \"fields\": \"campaign_id,campaign_name,adset_id,adset_name,objective,optimization_goal,buying_type,attribution_setting,impressions,reach,frequency,clicks,unique_clicks,cpm,cpc,cpp,ctr,unique_ctr,cost_per_unique_click,spend,inline_link_clicks,inline_link_click_ctr,outbound_clicks,outbound_clicks_ctr,actions,action_values,conversions,conversion_values,cost_per_conversion,cost_per_action_type,purchase_roas,website_purchase_roas,mobile_app_purchase_roas,unique_inline_link_clicks,unique_inline_link_click_ctr,unique_outbound_clicks,unique_outbound_clicks_ctr,cost_per_unique_outbound_click,cost_per_unique_inline_link_click\",\n  \"time_range\": {\n    \"since\": \"{{ $json.currentPeriod.since }}\",\n    \"until\": \"{{ $json.currentPeriod.until }}\"\n  },\n  \"action_attribution_windows\": [\n    \"1d_click\",\n    \"7d_click\",\n    \"28d_click\",\n    \"1d_view\",\n    \"7d_view\"\n  ],\n  \"breakdowns\": [],\n  \"level\": \"campaign\"\n}"
+        }
+      },
+      "id": "baf9398d-50db-4fd5-bead-13cbaeebbea6",
+      "name": "Monthly Campaign Performance",
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "position": [
+        4240,
+        1260
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "4YP0SBvRYSFdl91T",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "graphApiVersion": "v20.0",
+        "node": "act_555167645017860",
+        "edge": "insights",
+        "options": {
+          "queryParametersJson": "={\n  \"fields\": \"impressions,reach,frequency,clicks,unique_clicks,cpm,cpc,cpp,ctr,unique_ctr,cost_per_unique_click,spend,inline_link_clicks,inline_link_click_ctr,outbound_clicks,outbound_clicks_ctr,actions,action_values,conversions,conversion_values,cost_per_conversion,cost_per_action_type,purchase_roas,website_purchase_roas,mobile_app_purchase_roas,unique_inline_link_clicks,unique_inline_link_click_ctr,unique_outbound_clicks,unique_outbound_clicks_ctr,cost_per_unique_outbound_click,cost_per_unique_inline_link_click\",\n  \"time_range\": {\n    \"since\": \"{{ $json.currentPeriod.since }}\",\n    \"until\": \"{{ $json.currentPeriod.until }}\"\n  },\n  \"action_attribution_windows\": [\n    \"1d_click\",\n    \"7d_click\",\n    \"28d_click\",\n    \"1d_view\",\n    \"7d_view\"\n  ],\n  \"breakdowns\": [\"age\", \"gender\"],\n  \"level\": \"account\"\n}"
+        }
+      },
+      "id": "10f90858-fc10-4953-af97-97a69fae692b",
+      "name": "Monthly Demographics",
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "position": [
+        4240,
+        1460
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "4YP0SBvRYSFdl91T",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "graphApiVersion": "v20.0",
+        "node": "act_555167645017860",
+        "edge": "insights",
+        "options": {
+          "queryParametersJson": "={\n  \"fields\": \"account_id,account_name,impressions,reach,frequency,clicks,unique_clicks,cpm,cpc,cpp,ctr,unique_ctr,cost_per_unique_click,spend,inline_link_clicks,inline_link_click_ctr,outbound_clicks,outbound_clicks_ctr,actions,action_values,conversions,conversion_values,cost_per_conversion,cost_per_action_type,purchase_roas,website_purchase_roas,mobile_app_purchase_roas,objective,optimization_goal,buying_type,attribution_setting,cost_per_unique_inline_link_click,unique_inline_link_clicks,unique_inline_link_click_ctr,unique_outbound_clicks,unique_outbound_clicks_ctr,cost_per_unique_outbound_click\",\n  \"time_range\": {\n    \"since\": \"{{ $json.currentPeriod.since }}\",\n    \"until\": \"{{ $json.currentPeriod.until }}\"\n  },\n  \"action_attribution_windows\": [\n    \"1d_click\",\n    \"7d_click\",\n    \"28d_click\",\n    \"1d_view\",\n    \"7d_view\"\n  ],\n  \"breakdowns\": [\"region\"],\n  \"level\": \"account\"\n}"
+        }
+      },
+      "id": "8d5c29f0-64ac-48c2-bbf2-1fb5ba25567e",
+      "name": "Monthly Regional Performance",
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "position": [
+        4240,
+        1660
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "4YP0SBvRYSFdl91T",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "graphApiVersion": "v20.0",
+        "node": "act_555167645017860",
+        "edge": "insights",
+        "options": {
+          "queryParametersJson": "={\n  \"fields\": \"account_id,account_name,impressions,reach,frequency,clicks,unique_clicks,cpm,cpc,cpp,ctr,unique_ctr,cost_per_unique_click,spend,inline_link_clicks,inline_link_click_ctr,outbound_clicks,outbound_clicks_ctr,actions,action_values,conversions,conversion_values,cost_per_conversion,cost_per_action_type,purchase_roas,website_purchase_roas,mobile_app_purchase_roas,unique_inline_link_clicks,unique_inline_link_click_ctr,unique_outbound_clicks,unique_outbound_clicks_ctr,cost_per_unique_outbound_click,cost_per_unique_inline_link_click\",\n  \"time_range\": {\n    \"since\": \"{{ $json.currentPeriod.since }}\",\n    \"until\": \"{{ $json.currentPeriod.until }}\"\n  },\n  \"action_attribution_windows\": [\n    \"1d_click\",\n    \"7d_click\",\n    \"28d_click\",\n    \"1d_view\",\n    \"7d_view\"\n  ],\n  \"breakdowns\": [\"device_platform\"],\n  \"level\": \"account\"\n}"
+        }
+      },
+      "id": "2552a30b-dda4-446f-a70d-10a68724acb0",
+      "name": "Monthly Device Performance",
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "position": [
+        4240,
+        1860
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "4YP0SBvRYSFdl91T",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "graphApiVersion": "v20.0",
+        "node": "act_555167645017860",
+        "edge": "insights",
+        "options": {
+          "queryParametersJson": "={\n  \"fields\": \"account_id,account_name,impressions,reach,frequency,clicks,unique_clicks,cpm,cpc,cpp,ctr,unique_ctr,cost_per_unique_click,spend,inline_link_clicks,inline_link_click_ctr,outbound_clicks,outbound_clicks_ctr,actions,action_values,conversions,conversion_values,cost_per_conversion,cost_per_action_type,purchase_roas,website_purchase_roas,mobile_app_purchase_roas,unique_inline_link_clicks,unique_inline_link_click_ctr,unique_outbound_clicks,unique_outbound_clicks_ctr,cost_per_unique_outbound_click,cost_per_unique_inline_link_click\",\n  \"time_range\": {\n    \"since\": \"{{ $json.currentPeriod.since }}\",\n    \"until\": \"{{ $json.currentPeriod.until }}\"\n  },\n  \"action_attribution_windows\": [\n    \"1d_click\",\n    \"7d_click\",\n    \"28d_click\",\n    \"1d_view\",\n    \"7d_view\"\n  ],\n  \"breakdowns\": [\"publisher_platform\", \"platform_position\"],\n  \"level\": \"account\"\n}"
+        }
+      },
+      "id": "49b2962d-7635-436a-b1f2-a37662b14bc2",
+      "name": "Monthly Platform Breakdown",
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "position": [
+        4240,
+        2060
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "4YP0SBvRYSFdl91T",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "graphApiVersion": "v20.0",
+        "node": "act_555167645017860",
+        "edge": "insights",
+        "options": {
+          "queryParametersJson": "={\n  \"fields\": \"account_id,account_name,impressions,reach,frequency,clicks,unique_clicks,cpm,cpc,cpp,ctr,unique_ctr,cost_per_unique_click,spend,inline_link_clicks,inline_link_click_ctr,outbound_clicks,outbound_clicks_ctr,actions,action_values,conversions,conversion_values,cost_per_conversion,cost_per_action_type,purchase_roas,website_purchase_roas,mobile_app_purchase_roas,unique_inline_link_clicks,unique_inline_link_click_ctr,unique_outbound_clicks,unique_outbound_clicks_ctr,cost_per_unique_outbound_click,cost_per_unique_inline_link_click\",\n  \"time_range\": {\n    \"since\": \"{{ $json.currentPeriod.since }}\",\n    \"until\": \"{{ $json.currentPeriod.until }}\"\n  },\n  \"action_attribution_windows\": [\n    \"1d_click\",\n    \"7d_click\",\n    \"28d_click\",\n    \"1d_view\",\n    \"7d_view\"\n  ],\n  \"breakdowns\": [\"hourly_stats_aggregated_by_advertiser_time_zone\"],\n  \"level\": \"account\"\n}"
+        }
+      },
+      "id": "74fbdbe5-494e-4d70-a93b-48e03778ef29",
+      "name": "Monthly Hourly Performance",
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "position": [
+        4240,
+        2260
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "4YP0SBvRYSFdl91T",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "graphApiVersion": "v20.0",
+        "node": "act_555167645017860",
+        "edge": "insights",
+        "options": {
+          "queryParametersJson": "={\n  \"fields\": \"campaign_id,campaign_name,adset_id,adset_name,ad_id,ad_name,objective,optimization_goal,buying_type,attribution_setting,impressions,reach,frequency,clicks,unique_clicks,cpm,cpc,cpp,ctr,unique_ctr,cost_per_unique_click,spend,inline_link_clicks,inline_link_click_ctr,outbound_clicks,outbound_clicks_ctr,actions,action_values,conversions,conversion_values,cost_per_conversion,cost_per_action_type,purchase_roas,website_purchase_roas,mobile_app_purchase_roas,unique_inline_link_clicks,unique_inline_link_click_ctr,unique_outbound_clicks,unique_outbound_clicks_ctr,cost_per_unique_outbound_click,cost_per_unique_inline_link_click\",\n  \"time_range\": {\n    \"since\": \"{{ $json.currentPeriod.since }}\",\n    \"until\": \"{{ $json.currentPeriod.until }}\"\n  },\n  \"action_attribution_windows\": [\n    \"1d_click\",\n    \"7d_click\",\n    \"28d_click\",\n    \"1d_view\",\n    \"7d_view\"\n  ],\n  \"breakdowns\": [],\n  \"level\": \"ad\"\n}"
+        }
+      },
+      "id": "d4c9f662-8a25-4ff3-b72f-2b8d695f1c7b",
+      "name": "Monthly Ad-Level Performance",
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "position": [
+        4240,
+        2460
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "4YP0SBvRYSFdl91T",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression"
+            }
+          ]
+        }
+      },
+      "id": "9b7f3240-ba22-4bed-9f54-50b89fa60150",
+      "name": "Monthly 1st 10AM Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [
+        3820,
+        1860
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4460,
+        2460
+      ],
+      "id": "712396bf-df55-46ca-aab0-2b3d6c9d5d50",
+      "name": "Edit Fields6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0225d998-9d0d-490e-9b16-981254e7c603",
+              "name": "campaign",
+              "value": "={{ $json.data }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4460,
+        1260
+      ],
+      "id": "f16cbbad-5b1c-4a49-8796-530777ee5df7",
+      "name": "monthlyCampaign"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bd17df43-9ee7-4999-abde-a675bf6be510",
+              "name": "demographics",
+              "value": "={{ $json.data }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4460,
+        1460
+      ],
+      "id": "5ce64088-0202-4a38-999e-42e05b4bdecf",
+      "name": "monthlyDemographics"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bf247fa8-73cd-48c0-9e0f-38153b73be2c",
+              "name": "regional",
+              "value": "={{ $json.data }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4460,
+        1660
+      ],
+      "id": "6e8ac836-697c-4915-ac03-a61ba66962e8",
+      "name": "monthlyRegional"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e626ca72-3719-47b8-9566-bb8b58232f87",
+              "name": "device",
+              "value": "={{ $json.data }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4460,
+        1860
+      ],
+      "id": "225cd922-9ca9-45f7-b20b-e692b3495a81",
+      "name": "monthlyDevice"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "135bc99b-39be-4b60-a19a-4ab82fd9b96c",
+              "name": "Platform",
+              "value": "={{ $json.data }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4460,
+        2060
+      ],
+      "id": "1658783c-a55d-41e1-b48b-d55f8ea3be56",
+      "name": "monthlyPlatform"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ae42a3c7-9843-49e7-a09d-891ba39db819",
+              "name": "hourly",
+              "value": "={{ $json.data }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4460,
+        2260
+      ],
+      "id": "43210b77-c127-425f-a73d-1ddc49cf7a4c",
+      "name": "monthlyHourly"
+    },
+    {
+      "parameters": {
+        "numberInputs": 7
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        4860,
+        1780
+      ],
+      "id": "b582970c-622f-4c97-8ec8-c1b29a975c74",
+      "name": "monthlyMerge"
+    }
+  ],
+  "connections": {
+    "Set Monthly Date Range": {
+      "main": [
+        [
+          {
+            "node": "Monthly Campaign Performance",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Monthly Demographics",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Monthly Regional Performance",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Monthly Device Performance",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Monthly Platform Breakdown",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Monthly Hourly Performance",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Monthly Ad-Level Performance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Monthly Campaign Performance": {
+      "main": [
+        [
+          {
+            "node": "monthlyCampaign",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Monthly Demographics": {
+      "main": [
+        [
+          {
+            "node": "monthlyDemographics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Monthly Regional Performance": {
+      "main": [
+        [
+          {
+            "node": "monthlyRegional",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Monthly Device Performance": {
+      "main": [
+        [
+          {
+            "node": "monthlyDevice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Monthly Platform Breakdown": {
+      "main": [
+        [
+          {
+            "node": "monthlyPlatform",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Monthly Hourly Performance": {
+      "main": [
+        [
+          {
+            "node": "monthlyHourly",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Monthly Ad-Level Performance": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Monthly 1st 10AM Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Monthly Date Range",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields6": {
+      "main": [
+        [
+          {
+            "node": "monthlyMerge",
+            "type": "main",
+            "index": 6
+          }
+        ]
+      ]
+    },
+    "monthlyCampaign": {
+      "main": [
+        [
+          {
+            "node": "monthlyMerge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "monthlyDemographics": {
+      "main": [
+        [
+          {
+            "node": "monthlyMerge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "monthlyRegional": {
+      "main": [
+        [
+          {
+            "node": "monthlyMerge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "monthlyDevice": {
+      "main": [
+        [
+          {
+            "node": "monthlyMerge",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "monthlyPlatform": {
+      "main": [
+        [
+          {
+            "node": "monthlyMerge",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "monthlyHourly": {
+      "main": [
+        [
+          {
+            "node": "monthlyMerge",
+            "type": "main",
+            "index": 5
+          }
+        ]
+      ]
+    },
+    "monthlyMerge": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "22e110cfdd8c62a5ecfea21ee4b80c6f8b4120fd823bddcfe79c6f3da1b93312"
+  }
+}
