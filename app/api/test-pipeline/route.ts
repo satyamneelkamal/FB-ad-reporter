@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/supabase'
-import { collectFacebookData } from '@/lib/facebook-api'
+import { collectAllFacebookData, getDateRange } from '@/lib/facebook-api'
 import { validateFacebookData, transformFacebookData, generateDataQualityReport } from '@/lib/data-validation'
 import { logger, facebookApiLogger, dataValidationLogger, dataStorageLogger, PerformanceMonitor, ErrorTracker } from '@/lib/logger'
 
@@ -287,7 +287,8 @@ async function testDataCollection(testAdAccountId?: string | null): Promise<Test
     }
 
     facebookApiLogger.info('Starting data collection test', { adAccountId })
-    const collectedData = await collectFacebookData(adAccountId)
+    const dateRange = getDateRange()
+    const collectedData = await collectAllFacebookData(adAccountId, dateRange)
     
     const duration = timer.end(true)
     facebookApiLogger.info('Data collection completed', {

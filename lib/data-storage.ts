@@ -6,7 +6,7 @@
  */
 
 import { supabaseAdmin, db, type Client, type MonthlyReport } from './supabase'
-import { collectFacebookData } from './facebook-api'
+import { collectAllFacebookData, getDateRange } from './facebook-api'
 import { validateFacebookData, transformFacebookData, generateDataQualityReport, type ValidatedFacebookData } from './data-validation'
 
 export interface DataStorageResult {
@@ -51,7 +51,8 @@ export async function collectAndStoreClientData(
   try {
     // Step 1: Collect data from Facebook API
     console.log('🔄 Collecting data from Facebook API...')
-    const facebookData = await collectFacebookData(client.fb_ad_account_id)
+    const dateRange = getDateRange()
+    const facebookData = await collectAllFacebookData(client.fb_ad_account_id, dateRange)
     
     // Use provided monthYear or the one from data collection
     const targetMonthYear = monthYear || facebookData.month_identifier

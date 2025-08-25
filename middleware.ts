@@ -10,6 +10,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/setup') ||
     pathname.startsWith('/api/auth') ||
     pathname.startsWith('/api/create-admin') ||
+    pathname.startsWith('/api/test-facebook') ||
     pathname === '/' ||
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon')

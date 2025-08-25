@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { collectFacebookData } from '@/lib/facebook-api'
+import { collectAllFacebookData, getDateRange } from '@/lib/facebook-api'
 
 /**
  * Test Facebook API Connectivity
@@ -89,7 +89,9 @@ export async function POST(request: NextRequest) {
 
     // Test full data collection
     const startTime = Date.now()
-    const result = await collectFacebookData(adAccountId)
+    const testAdAccountId = adAccountId || process.env.FACEBOOK_AD_ACCOUNT_ID!
+    const dateRange = getDateRange()
+    const result = await collectAllFacebookData(testAdAccountId, dateRange)
     const endTime = Date.now()
     const duration = endTime - startTime
 

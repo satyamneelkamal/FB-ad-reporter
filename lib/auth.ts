@@ -78,7 +78,7 @@ export async function getAdminFromRequest(request: NextRequest): Promise<Admin |
       token = authHeader.substring(7)
     } else {
       // Try cookie as fallback
-      token = request.cookies.get('admin-token')?.value
+      token = request.cookies.get('auth-token')?.value
     }
 
     if (!token) {

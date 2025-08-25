@@ -451,7 +451,7 @@ function validateAdAccountId(adAccountId: string): boolean {
  * Main function to collect all Facebook data types
  * Enhanced with comprehensive error handling and validation
  */
-export async function collectFacebookData(adAccountId?: string): Promise<{
+export async function collectAllFacebookData(adAccountId: string, dateRange: FacebookDateRange): Promise<{
   campaigns: any[];
   demographics: any[];
   regional: any[];
@@ -479,7 +479,7 @@ export async function collectFacebookData(adAccountId?: string): Promise<{
 
   const config: FacebookApiConfig = {
     accessToken: process.env.FACEBOOK_ACCESS_TOKEN!,
-    adAccountId: adAccountId || process.env.FACEBOOK_AD_ACCOUNT_ID!,
+    adAccountId: adAccountId,
     apiVersion: process.env.FACEBOOK_API_VERSION || 'v20.0',
     attributionWindows: [
       '1d_click',
@@ -494,8 +494,6 @@ export async function collectFacebookData(adAccountId?: string): Promise<{
   if (!validateAdAccountId(config.adAccountId)) {
     throw new Error(`Invalid Ad Account ID format: ${config.adAccountId}. Expected format: act_123456789`);
   }
-
-  const dateRange = getDateRange();
   console.log(`📅 Collection date range: ${dateRange.since} to ${dateRange.until}`);
 
   const results = {
@@ -508,7 +506,7 @@ export async function collectFacebookData(adAccountId?: string): Promise<{
     adLevel: [] as any[],
     scraped_at: new Date().toISOString(),
     date_range: dateRange,
-    month_identifier: getMonthIdentifier(),
+    month_identifier: `${dateRange.since.slice(0,7)}`,
     collection_summary: {
       total_records: 0,
       successful_endpoints: 0,
