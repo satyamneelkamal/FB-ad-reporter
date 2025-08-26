@@ -82,17 +82,22 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Calculate total records collected across all data types
+      const totalRecords = (reportData.campaigns?.length || 0) +
+                          (reportData.demographics?.length || 0) +
+                          (reportData.regional?.length || 0) +
+                          (reportData.devices?.length || 0) +
+                          (reportData.platforms?.length || 0) +
+                          (reportData.hourly?.length || 0) +
+                          (reportData.adLevel?.length || 0);
+
       return NextResponse.json({
-        message: 'Data collection completed successfully',
+        message: `Data collection completed! Successfully collected ${totalRecords} records from Facebook Ads API.`,
         reportId: report.id,
-        dataCollected: {
-          campaigns: reportData.campaigns?.length || 0,
-          demographics: reportData.demographics?.length || 0,
-          regions: reportData.regions?.length || 0,
-          devices: reportData.devices?.length || 0,
-          platforms: reportData.platforms?.length || 0,
-          hourly: reportData.hourly?.length || 0,
-          ads: reportData.ads?.length || 0
+        summary: {
+          totalRecords,
+          dataTypes: 7,
+          monthYear: monthYear
         }
       });
 

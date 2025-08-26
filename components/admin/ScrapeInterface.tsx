@@ -108,7 +108,7 @@ export default function ScrapeInterface({ clients, onScrapeComplete }: ScrapeInt
       setProgress({ step: 'Complete', progress: 100, message: 'Data collection completed successfully!' });
       
       setTimeout(() => {
-        setSuccess(`Data collection completed! Collected: ${Object.entries(data.dataCollected || {})
+        setSuccess(`Data collection completed! ${Object.entries(data.dataCollected || {})
           .map(([key, value]) => `${value} ${key}`)
           .join(', ')}`);
         
