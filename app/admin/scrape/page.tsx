@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { AppSidebar } from "@/components/app-sidebar"
+import { SiteHeader } from "@/components/site-header"
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -8,6 +10,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import {
+  SidebarInset,
+  SidebarProvider,
+} from "@/components/ui/sidebar"
 import { Loader2, Database, Calendar, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface Client {
@@ -33,6 +39,39 @@ interface ScrapeStats {
   totalReports: number;
   reportsThisMonth: number;
   lastScrapedAt: string | null;
+}
+
+// Admin navigation data - consistent with other admin pages
+const adminNavigation = {
+  user: {
+    name: "Admin User",
+    email: "admin@example.com",
+    avatar: "https://ui-avatars.com/api/?name=Admin+User&background=0f172a&color=fff",
+  },
+  navMain: [
+    {
+      title: "Dashboard",
+      url: "/admin",
+      icon: "IconDashboard",
+    },
+    {
+      title: "Clients",
+      url: "/admin/clients",
+      icon: "IconUsers",
+    },
+    {
+      title: "Data Collection",
+      url: "/admin/scrape",
+      icon: "IconDatabase",
+    },
+  ],
+  navSecondary: [
+    {
+      title: "Settings",
+      url: "/admin/settings",
+      icon: "IconSettings",
+    },
+  ],
 }
 
 export default function AdminScrapePage() {
@@ -136,7 +175,20 @@ export default function AdminScrapePage() {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+    >
+      <AppSidebar variant="inset" navigationData={adminNavigation} />
+      <SidebarInset>
+        <SiteHeader />
+        <div className="flex flex-1 flex-col">
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            <div className="space-y-6 p-6">
       <div className="flex items-center gap-2">
         <Database className="h-6 w-6" />
         <h1 className="text-2xl font-bold">Data Collection</h1>
@@ -294,6 +346,10 @@ export default function AdminScrapePage() {
           )}
         </CardContent>
       </Card>
-    </div>
+            </div>
+          </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

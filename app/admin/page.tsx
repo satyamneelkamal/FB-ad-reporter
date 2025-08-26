@@ -10,7 +10,7 @@ import {
 
 import data from "../dashboard/data.json"
 
-// Admin navigation data
+// Admin navigation data - cleaned up to show only useful navigation items
 const adminNavigation = {
   user: {
     name: "Admin User",
@@ -33,92 +33,12 @@ const adminNavigation = {
       url: "/admin/scrape",
       icon: "IconDatabase",
     },
-    {
-      title: "Analytics",
-      url: "/admin/analytics",
-      icon: "IconChartBar",
-    },
-  ],
-  navClouds: [
-    {
-      title: "Client Management",
-      icon: "IconUsers",
-      isActive: true,
-      url: "/admin/clients",
-      items: [
-        {
-          title: "All Clients",
-          url: "/admin/clients",
-        },
-        {
-          title: "Add Client",
-          url: "/admin/clients/new",
-        },
-      ],
-    },
-    {
-      title: "Data Collection",
-      icon: "IconDatabase",
-      url: "/admin/scrape",
-      items: [
-        {
-          title: "Manual Scrape",
-          url: "/admin/scrape",
-        },
-        {
-          title: "Scrape History",
-          url: "/admin/scrape/history",
-        },
-      ],
-    },
-    {
-      title: "Reports",
-      icon: "IconReport",
-      url: "/admin/reports",
-      items: [
-        {
-          title: "All Reports",
-          url: "/admin/reports",
-        },
-        {
-          title: "System Stats",
-          url: "/admin/reports/stats",
-        },
-      ],
-    },
   ],
   navSecondary: [
     {
       title: "Settings",
       url: "/admin/settings",
       icon: "IconSettings",
-    },
-    {
-      title: "API Logs",
-      url: "/admin/logs",
-      icon: "IconFileDescription",
-    },
-    {
-      title: "Help",
-      url: "/admin/help",
-      icon: "IconHelp",
-    },
-  ],
-  documents: [
-    {
-      name: "Client Database",
-      url: "/admin/clients",
-      icon: "IconDatabase",
-    },
-    {
-      name: "System Reports",
-      url: "/admin/reports",
-      icon: "IconReport",
-    },
-    {
-      name: "API Documentation",
-      url: "/admin/docs",
-      icon: "IconFileDescription",
     },
   ],
 }

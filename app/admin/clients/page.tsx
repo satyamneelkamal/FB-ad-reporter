@@ -48,13 +48,6 @@ const adminNavigation = {
       icon: "IconSettings",
     },
   ],
-  documents: [
-    {
-      name: "Client Database",
-      url: "/admin/clients",
-      icon: "IconDatabase",
-    },
-  ],
 }
 
 interface Client {

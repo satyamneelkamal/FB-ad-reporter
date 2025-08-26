@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminFromRequest } from '@/lib/auth';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 import { collectAllFacebookData } from '@/lib/facebook-api';
 
 export async function POST(request: NextRequest) {
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get client details
-    const { data: client, error: clientError } = await supabase
+    const { data: client, error: clientError } = await supabaseAdmin
       .from('clients')
       .select('*')
       .eq('id', clientId)
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if report already exists
-    const { data: existingReport } = await supabase
+    const { data: existingReport } = await supabaseAdmin
       .from('monthly_reports')
       .select('id')
       .eq('client_id', clientId)
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       );
 
       // Store in database
-      const { data: report, error: insertError } = await supabase
+      const { data: report, error: insertError } = await supabaseAdmin
         .from('monthly_reports')
         .insert({
           client_id: clientId,
@@ -127,7 +127,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const clientId = searchParams.get('clientId');
 
-    let query = supabase
+    let query = supabaseAdmin
       .from('monthly_reports')
       .select(`
         id,
@@ -157,7 +157,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get summary statistics
-    const { data: stats } = await supabase
+    const { data: stats } = await supabaseAdmin
       .from('monthly_reports')
       .select('scraped_at')
       .gte('scraped_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
