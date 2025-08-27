@@ -103,7 +103,9 @@ export default function CampaignTypesPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalSpendAcrossObjectives}</div>
+            <div className="text-2xl font-bold">
+              ${totalSpendAcrossObjectives > 0 ? Math.round(totalSpendAcrossObjectives).toLocaleString() : '0'}
+            </div>
             <p className="text-xs text-muted-foreground">
               Across all objectives
             </p>
@@ -132,7 +134,7 @@ export default function CampaignTypesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${highestSpendingObjective?.totalSpend || 0}
+              ${highestSpendingObjective?.totalSpend > 0 ? Math.round(highestSpendingObjective.totalSpend).toLocaleString() : '0'}
             </div>
             <p className="text-xs text-muted-foreground">
               {highestSpendingObjective?.objective.replace(/_/g, ' ') || 'N/A'}
@@ -222,13 +224,13 @@ export default function CampaignTypesPage() {
                           </div>
                         </TableCell>
                         <TableCell className="text-right font-mono">
-                          ${objective.totalSpend}
+                          ${objective.totalSpend > 0 ? Math.round(objective.totalSpend).toLocaleString() : '0'}
                         </TableCell>
                         <TableCell className="text-right">
                           {objective.count}
                         </TableCell>
                         <TableCell className="text-right font-mono">
-                          ${objective.avgSpend.toFixed(2)}
+                          ${objective.avgSpend > 0 ? Math.round(objective.avgSpend).toLocaleString() : '0'}
                         </TableCell>
                         <TableCell className="text-right">
                           {sharePercentage.toFixed(1)}%
@@ -275,7 +277,7 @@ export default function CampaignTypesPage() {
                   {highestSpendingObjective && (
                     <>
                       <strong>{highestSpendingObjective.objective.replace(/_/g, ' ')}</strong> campaigns 
-                      account for the highest spend (${highestSpendingObjective.totalSpend}), representing{' '}
+                      account for the highest spend (${Math.round(highestSpendingObjective.totalSpend).toLocaleString()}), representing{' '}
                       {((highestSpendingObjective.totalSpend / totalSpendAcrossObjectives) * 100).toFixed(1)}% 
                       of your total budget.
                     </>

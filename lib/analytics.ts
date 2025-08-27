@@ -406,13 +406,16 @@ export class FacebookAnalytics {
       ? demographics.reduce((sum: number, demo: any) => sum + parseFloat(demo.spend || '0'), 0)
       : campaigns.reduce((sum: number, c: any) => sum + parseFloat(c.spend || '0'), 0)
 
+    // Get campaigns with distributed spend for consistent data across all analytics
+    const campaignsWithSpend = this.analyzeCampaigns(campaigns, demographics, totalSpend)
+
     return {
       overview: this.calculateOverview(reportData),
-      campaigns: this.analyzeCampaigns(campaigns, demographics, totalSpend),
+      campaigns: campaignsWithSpend,
       demographics: this.processDemographics(demographics),
       regional: this.processRegional(regional),
       engagement: this.calculateEngagement(campaigns, adLevel, demographics),
-      campaignTypes: this.groupByObjective(campaigns),
+      campaignTypes: this.groupByObjective(campaignsWithSpend), // Use campaigns with distributed spend
       devicesAndPlatforms: this.processDevices(devices, platforms),
       adLevel: adLevel,
       hourly: hourly,
