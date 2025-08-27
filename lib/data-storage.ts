@@ -8,6 +8,7 @@
 import { supabaseAdmin, db, type Client, type MonthlyReport } from './supabase'
 import { collectAllFacebookData, getDateRange } from './facebook-api'
 import { validateFacebookData, transformFacebookData, generateDataQualityReport, type ValidatedFacebookData } from './data-validation'
+import { FacebookAnalytics } from './analytics'
 
 export interface DataStorageResult {
   success: boolean
@@ -98,6 +99,31 @@ export async function collectAndStoreClientData(
     - Total records: ${cleanedData.collection_summary.total_records}
     - Quality score: ${qualityReport.overall_score}/100
     - Storage time: ${storageTime}ms`)
+
+    // Step 6: Automatically generate analytics cache
+    console.log('🔄 Generating analytics cache automatically...')
+    try {
+      const processedAnalytics = FacebookAnalytics.generateFullAnalytics(cleanedData as any)
+      
+      const { error: cacheError } = await supabaseAdmin
+        .from('analytics_cache')
+        .upsert({
+          client_id: client.id,
+          analytics_data: processedAnalytics,
+          last_updated: new Date().toISOString(),
+          data_source: 'facebook_api'
+        })
+
+      if (cacheError) {
+        console.error(`⚠️  Failed to cache analytics for ${client.name}:`, cacheError)
+        // Don't fail the entire operation if cache generation fails
+      } else {
+        console.log(`✅ Analytics cache generated for ${client.name}`)
+      }
+    } catch (cacheError) {
+      console.error(`⚠️  Error generating analytics cache for ${client.name}:`, cacheError)
+      // Don't fail the entire operation if cache generation fails
+    }
 
     return {
       success: true,

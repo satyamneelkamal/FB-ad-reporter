@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { loginAdmin, createAdmin, generateToken, getCookieOptions } from '@/lib/auth'
+import { loginAdmin, createAdmin, generateToken, generateClientToken, getCookieOptions } from '@/lib/auth'
 import { db, supabase } from '@/lib/supabase'
 import { authLogger } from '@/lib/logger'
 
@@ -53,25 +53,42 @@ export async function POST(request: NextRequest) {
       })
       
       if (authData.user && !authError) {
-        // Create auth object for JWT token generation
-        const userAuth = {
-          id: authData.user.id,
-          email: authData.user.email!,
-          password_hash: 'supabase-auth',
-          created_at: authData.user.created_at
+        // Find the client record for this user
+        const { data: clientData, error: clientError } = await supabase
+          .from('clients')
+          .select('id, name, slug')
+          .eq('user_id', authData.user.id)
+          .single()
+        
+        if (clientError || !clientData) {
+          authLogger.error('Client not found for user', clientError || new Error('No client record'), { 
+            user_id: authData.user.id, 
+            email 
+          })
+          
+          return NextResponse.json(
+            { error: 'Client account not found. Please contact support.' },
+            { status: 403 }
+          )
         }
         
-        const userToken = generateToken(userAuth)
+        // Generate client token with client context
+        const userToken = generateClientToken(authData.user, clientData.id)
         
-        authLogger.adminAction(email, 'user_login_success', { user_id: authData.user.id })
+        authLogger.adminAction(email, 'user_login_success', { 
+          user_id: authData.user.id,
+          client_id: clientData.id
+        })
         
         const response = NextResponse.json({
           success: true,
           user: {
             id: authData.user.id,
             email: authData.user.email,
-            name: authData.user.user_metadata?.name || authData.user.email,
-            role: 'client'
+            name: authData.user.user_metadata?.name || clientData.name || authData.user.email,
+            role: 'client',
+            clientId: clientData.id,
+            clientName: clientData.name
           },
           redirect: '/client'
         })

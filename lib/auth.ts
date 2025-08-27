@@ -8,7 +8,7 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { NextRequest } from 'next/server'
-import { db, type Admin } from './supabase'
+import { db, type Admin, supabase } from './supabase'
 
 const JWT_SECRET = process.env.JWT_SECRET!
 const ADMIN_SETUP_KEY = process.env.ADMIN_SETUP_KEY || 'admin-setup-123'
@@ -18,8 +18,11 @@ if (!JWT_SECRET) {
 }
 
 export interface JwtPayload {
-  adminId: number
+  adminId?: number
+  userId?: string
   email: string
+  role: 'admin' | 'client'
+  clientId?: number
   iat: number
   exp: number
 }
@@ -45,7 +48,25 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 export function generateToken(admin: Admin): string {
   const payload: Omit<JwtPayload, 'iat' | 'exp'> = {
     adminId: admin.id,
-    email: admin.email
+    email: admin.email,
+    role: 'admin'
+  }
+  
+  return jwt.sign(payload, JWT_SECRET, {
+    expiresIn: '7d', // Token valid for 7 days
+    issuer: 'facebook-ads-dashboard'
+  })
+}
+
+/**
+ * Generate JWT token for client with client context
+ */
+export function generateClientToken(user: any, clientId: number): string {
+  const payload: Omit<JwtPayload, 'iat' | 'exp'> = {
+    userId: user.id,
+    email: user.email,
+    role: 'client',
+    clientId
   }
   
   return jwt.sign(payload, JWT_SECRET, {
@@ -166,6 +187,75 @@ export function requireAuth() {
     }
     
     return admin
+  }
+}
+
+/**
+ * Extract client ID from JWT token for authenticated clients
+ */
+export async function getClientIdFromToken(request: NextRequest): Promise<number> {
+  try {
+    const token = request.cookies.get('auth-token')?.value
+    
+    if (!token) {
+      throw new Error('No authentication token found')
+    }
+
+    const payload = verifyToken(token)
+    
+    if (payload.role === 'admin') {
+      throw new Error('Admin users cannot access client-specific analytics')
+    }
+    
+    if (payload.role === 'client' && payload.clientId) {
+      return payload.clientId
+    }
+    
+    // Fallback: lookup client by user_id if clientId not in token
+    if (payload.userId) {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('user_id', payload.userId)
+        .single()
+        
+      if (error || !data) {
+        throw new Error('Client not found for user')
+      }
+      
+      return data.id
+    }
+    
+    throw new Error('Invalid token structure')
+    
+  } catch (error) {
+    console.error('Error extracting client ID:', error)
+    throw new Error('Failed to authenticate client')
+  }
+}
+
+/**
+ * Get client information from token
+ */
+export async function getClientFromToken(request: NextRequest) {
+  try {
+    const clientId = await getClientIdFromToken(request)
+    
+    const { data: client, error } = await supabase
+      .from('clients')
+      .select('*')
+      .eq('id', clientId)
+      .single()
+      
+    if (error || !client) {
+      throw new Error('Client not found')
+    }
+    
+    return client
+    
+  } catch (error) {
+    console.error('Error getting client:', error)
+    throw error
   }
 }
 

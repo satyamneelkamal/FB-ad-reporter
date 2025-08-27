@@ -30,7 +30,7 @@ export function middleware(request: NextRequest) {
   try {
     // Verify and decode token
     const payload = verifyToken(token)
-    const userRole = payload.email.includes('@client.local') ? 'client' : 'admin'
+    const userRole = payload.role || 'admin' // Use role from JWT payload
 
     // Route protection based on role
     if (pathname.startsWith('/admin')) {

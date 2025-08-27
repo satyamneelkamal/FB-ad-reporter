@@ -17,6 +17,12 @@ import {
   IconSearch,
   IconSettings,
   IconUsers,
+  IconTarget,
+  IconCategory2,
+  IconHeart,
+  IconMap,
+  IconDevices,
+  IconChartPie,
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -49,6 +55,12 @@ const iconMap: { [key: string]: any } = {
   IconListDetails,
   IconFolder,
   IconFileWord,
+  IconTarget,
+  IconCategory2,
+  IconHeart,
+  IconMap,
+  IconDevices,
+  IconChartPie,
 }
 
 // Default data (fallback)
