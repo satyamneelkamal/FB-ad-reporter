@@ -256,7 +256,7 @@ export default function CampaignPerformancePage() {
                       </div>
                     </TableCell>
                     <TableCell className="font-mono">
-                      ${campaign.spend}
+                      ${campaign.spend > 0 ? Math.round(campaign.spend).toLocaleString() : '0'}
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">

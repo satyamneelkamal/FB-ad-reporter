@@ -9,409 +9,107 @@
 
  ✓ Starting...
  ○ Compiling middleware ...
- ✓ Compiled middleware in 4.9s
- ✓ Ready in 31.5s
+ ✓ Compiled middleware in 5.1s
+ ✓ Ready in 38.1s
 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
- ○ Compiling /api/auth ...
- ✓ Compiled /api/auth in 10.5s
+ ○ Compiling /client/analytics/devices ...
 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
-ℹ️ [Auth] Login attempt { email: 'ankur@fotoplane.com' }
-ℹ️ [Auth] Admin action: user_login_success {
-  adminEmail: 'ankur@fotoplane.com',
-  action: 'user_login_success',
-  timestamp: '2025-08-27T16:15:10.029Z',
-  user_id: 'efd82a79-d304-4bdd-815a-8e73765bee1d',
-  client_id: 9
-}
- POST /api/auth 200 in 15571ms
- ○ Compiling /client/analytics/demographics ...
- ✓ Compiled /client/analytics/demographics in 35.5s
- GET /client/analytics/demographics 200 in 39905ms
- GET /client/analytics/demographics 200 in 1366ms
+ GET /api/client/reports 404 in 18526ms
+ ✓ Compiled /client/analytics/devices in 68.6s
+ GET /client/analytics/devices 200 in 78894ms
+ ○ Compiling /api/client/analytics/cached ...
+ ✓ Compiled /api/client/analytics/cached in 7.4s
+ GET /avatars/client.jpg 404 in 9311ms
+🔍 [Analytics Cache] Fetching cached data for client 9
+🎯 [generateFullAnalytics] STARTING ANALYTICS PROCESSING
+📂 [generateFullAnalytics] Data arrays: { campaigns: 25, demographics: 13, adLevel: 25 }
+🔍 Analytics Debug:
+📊 Demographics length: 13
+📊 First demo spend: 2148.984817
+📊 Campaigns length: 25
+📊 First campaign spend: 0
+📊 Total calculated spend: 43669.800001999996
+ GET /api/client/analytics 200 in 7724ms
+🔄 [Analytics Cache] Cached data is stale or missing, refreshing...
+🔄 [Analytics Cache] Processing fresh Facebook data...
+📋 [Analytics Cache] Report data keys: [
+  'hourly',
+  'adLevel',
+  'devices',
+  'regional',
+  'campaigns',
+  'platforms',
+  'date_range',
+  'scraped_at',
+  'demographics',
+  'month_identifier',
+  'collection_summary'
+]
+🎯 [generateFullAnalytics] STARTING ANALYTICS PROCESSING
+📂 [generateFullAnalytics] Data arrays: { campaigns: 25, demographics: 13, adLevel: 25 }
+🔍 Analytics Debug:
+📊 Demographics length: 13
+📊 First demo spend: 2148.984817
+📊 Campaigns length: 25
+📊 First campaign spend: 0
+📊 Total calculated spend: 43669.800001999996
+✨ [Analytics Cache] Analytics processing completed
+✅ [Analytics Cache] Successfully cached fresh data
+ GET /api/client/analytics/cached 200 in 13149ms
+🎯 [generateFullAnalytics] STARTING ANALYTICS PROCESSING
+📂 [generateFullAnalytics] Data arrays: { campaigns: 25, demographics: 13, adLevel: 25 }
+🔍 Analytics Debug:
+📊 Demographics length: 13
+📊 First demo spend: 2148.984817
+📊 Campaigns length: 25
+📊 First campaign spend: 0
+📊 Total calculated spend: 43669.800001999996
+ GET /api/client/analytics 200 in 2136ms
+ GET /client/analytics/devices 200 in 1634ms
  ○ Compiling /favicon.ico ...
- ✓ Compiled /favicon.ico in 3.8s
- GET /favicon.ico?favicon.0b3bf435.ico 200 in 5293ms
- GET /avatars/client.jpg 404 in 4895ms
+ ✓ Compiled /favicon.ico in 3.5s
+ GET /avatars/client.jpg 404 in 3731ms
+ GET /favicon.ico?favicon.0b3bf435.ico 200 in 5479ms
 🔍 [Analytics Cache] Fetching cached data for client 9
-🔄 [Analytics Cache] Cached data is stale or missing, refreshing...
-🔄 [Analytics Cache] Processing fresh Facebook data...
-📋 [Analytics Cache] Report data keys: [
-  'hourly',
-  'adLevel',
-  'devices',
-  'regional',
-  'campaigns',
-  'platforms',
-  'date_range',
-  'scraped_at',
-  'demographics',
-  'month_identifier',
-  'collection_summary'
-]
-🎯 [generateFullAnalytics] STARTING ANALYTICS PROCESSING
-📂 [generateFullAnalytics] Data arrays: { campaigns: 25, demographics: 13, adLevel: 25 }
-🔍 Analytics Debug:
-📊 Demographics length: 13
-📊 First demo spend: 2148.984817
-📊 Campaigns length: 25
-📊 First campaign spend: 0
-📊 Total calculated spend: 43669.800001999996
-✨ [Analytics Cache] Analytics processing completed
-❌ [Analytics Cache] Failed to cache data: {
-  code: '23505',
-  details: 'Key (client_id)=(9) already exists.',
-  hint: null,
-  message: 'duplicate key value violates unique constraint "analytics_cache_client_id_key"'
-}
- GET /api/client/analytics/cached 200 in 7800ms
- ○ Compiling /client/analytics ...
- ✓ Compiled /client/analytics in 2.8s
- GET /client/analytics 200 in 4811ms
- GET /avatars/client.jpg 404 in 2509ms
+✅ [Analytics Cache] Serving fresh cached data (131s old)
+ GET /api/client/analytics/cached 200 in 5185ms
+ ○ Compiling /client/analytics/demographics ...
+ ✓ Compiled /client/analytics/demographics in 2.8s
+ GET /client/analytics/demographics 200 in 4126ms
+ GET /avatars/client.jpg 404 in 2702ms
 🔍 [Analytics Cache] Fetching cached data for client 9
-🔄 [Analytics Cache] Cached data is stale or missing, refreshing...
-🔄 [Analytics Cache] Processing fresh Facebook data...
-📋 [Analytics Cache] Report data keys: [
-  'hourly',
-  'adLevel',
-  'devices',
-  'regional',
-  'campaigns',
-  'platforms',
-  'date_range',
-  'scraped_at',
-  'demographics',
-  'month_identifier',
-  'collection_summary'
-]
-🎯 [generateFullAnalytics] STARTING ANALYTICS PROCESSING
-📂 [generateFullAnalytics] Data arrays: { campaigns: 25, demographics: 13, adLevel: 25 }
-🔍 Analytics Debug:
-📊 Demographics length: 13
-📊 First demo spend: 2148.984817
-📊 Campaigns length: 25
-📊 First campaign spend: 0
-📊 Total calculated spend: 43669.800001999996
-✨ [Analytics Cache] Analytics processing completed
-❌ [Analytics Cache] Failed to cache data: {
-  code: '23505',
-  details: 'Key (client_id)=(9) already exists.',
-  hint: null,
-  message: 'duplicate key value violates unique constraint "analytics_cache_client_id_key"'
-}
- GET /api/client/analytics/cached 200 in 5004ms
- GET /client/analytics 200 in 1362ms
- GET /avatars/client.jpg 404 in 1890ms
-🔍 [Analytics Cache] Fetching cached data for client 9
-🔄 [Analytics Cache] Cached data is stale or missing, refreshing...
-🔄 [Analytics Cache] Processing fresh Facebook data...
-📋 [Analytics Cache] Report data keys: [
-  'hourly',
-  'adLevel',
-  'devices',
-  'regional',
-  'campaigns',
-  'platforms',
-  'date_range',
-  'scraped_at',
-  'demographics',
-  'month_identifier',
-  'collection_summary'
-]
-🎯 [generateFullAnalytics] STARTING ANALYTICS PROCESSING
-📂 [generateFullAnalytics] Data arrays: { campaigns: 25, demographics: 13, adLevel: 25 }
-🔍 Analytics Debug:
-📊 Demographics length: 13
-📊 First demo spend: 2148.984817
-📊 Campaigns length: 25
-📊 First campaign spend: 0
-📊 Total calculated spend: 43669.800001999996
-✨ [Analytics Cache] Analytics processing completed
-❌ [Analytics Cache] Failed to cache data: {
-  code: '23505',
-  details: 'Key (client_id)=(9) already exists.',
-  hint: null,
-  message: 'duplicate key value violates unique constraint "analytics_cache_client_id_key"'
-}
- GET /api/client/analytics/cached 200 in 5250ms
- ○ Compiling /client/analytics/campaigns ...
- ✓ Compiled /client/analytics/campaigns in 2.4s
- GET /client/analytics/campaigns 200 in 4781ms
- GET /avatars/client.jpg 404 in 2774ms
-🔍 [Analytics Cache] Fetching cached data for client 9
-🔄 [Analytics Cache] Cached data is stale or missing, refreshing...
-🔄 [Analytics Cache] Processing fresh Facebook data...
-📋 [Analytics Cache] Report data keys: [
-  'hourly',
-  'adLevel',
-  'devices',
-  'regional',
-  'campaigns',
-  'platforms',
-  'date_range',
-  'scraped_at',
-  'demographics',
-  'month_identifier',
-  'collection_summary'
-]
-🎯 [generateFullAnalytics] STARTING ANALYTICS PROCESSING
-📂 [generateFullAnalytics] Data arrays: { campaigns: 25, demographics: 13, adLevel: 25 }
-🔍 Analytics Debug:
-📊 Demographics length: 13
-📊 First demo spend: 2148.984817
-📊 Campaigns length: 25
-📊 First campaign spend: 0
-📊 Total calculated spend: 43669.800001999996
-✨ [Analytics Cache] Analytics processing completed
-❌ [Analytics Cache] Failed to cache data: {
-  code: '23505',
-  details: 'Key (client_id)=(9) already exists.',
-  hint: null,
-  message: 'duplicate key value violates unique constraint "analytics_cache_client_id_key"'
-}
- GET /api/client/analytics/cached 200 in 7253ms
- GET /client/analytics/campaigns 200 in 1472ms
- GET /favicon.ico?favicon.0b3bf435.ico 200 in 4180ms
- GET /avatars/client.jpg 404 in 2980ms
-🔍 [Analytics Cache] Fetching cached data for client 9
-🔄 [Analytics Cache] Cached data is stale or missing, refreshing...
-🔄 [Analytics Cache] Processing fresh Facebook data...
-📋 [Analytics Cache] Report data keys: [
-  'hourly',
-  'adLevel',
-  'devices',
-  'regional',
-  'campaigns',
-  'platforms',
-  'date_range',
-  'scraped_at',
-  'demographics',
-  'month_identifier',
-  'collection_summary'
-]
-🎯 [generateFullAnalytics] STARTING ANALYTICS PROCESSING
-📂 [generateFullAnalytics] Data arrays: { campaigns: 25, demographics: 13, adLevel: 25 }
-🔍 Analytics Debug:
-📊 Demographics length: 13
-📊 First demo spend: 2148.984817
-📊 Campaigns length: 25
-📊 First campaign spend: 0
-📊 Total calculated spend: 43669.800001999996
-✨ [Analytics Cache] Analytics processing completed
-❌ [Analytics Cache] Failed to cache data: {
-  code: '23505',
-  details: 'Key (client_id)=(9) already exists.',
-  hint: null,
-  message: 'duplicate key value violates unique constraint "analytics_cache_client_id_key"'
-}
- GET /api/client/analytics/cached 200 in 6031ms
- GET /client/analytics 200 in 1394ms
- GET /avatars/client.jpg 404 in 2470ms
-🔍 [Analytics Cache] Fetching cached data for client 9
-🔄 [Analytics Cache] Cached data is stale or missing, refreshing...
-🔄 [Analytics Cache] Processing fresh Facebook data...
-📋 [Analytics Cache] Report data keys: [
-  'hourly',
-  'adLevel',
-  'devices',
-  'regional',
-  'campaigns',
-  'platforms',
-  'date_range',
-  'scraped_at',
-  'demographics',
-  'month_identifier',
-  'collection_summary'
-]
-🎯 [generateFullAnalytics] STARTING ANALYTICS PROCESSING
-📂 [generateFullAnalytics] Data arrays: { campaigns: 25, demographics: 13, adLevel: 25 }
-🔍 Analytics Debug:
-📊 Demographics length: 13
-📊 First demo spend: 2148.984817
-📊 Campaigns length: 25
-📊 First campaign spend: 0
-📊 Total calculated spend: 43669.800001999996
-✨ [Analytics Cache] Analytics processing completed
-❌ [Analytics Cache] Failed to cache data: {
-  code: '23505',
-  details: 'Key (client_id)=(9) already exists.',
-  hint: null,
-  message: 'duplicate key value violates unique constraint "analytics_cache_client_id_key"'
-}
- GET /api/client/analytics/cached 200 in 6067ms
- GET /client/analytics/campaigns 200 in 1411ms
- GET /avatars/client.jpg 404 in 2377ms
-🔍 [Analytics Cache] Fetching cached data for client 9
-🔄 [Analytics Cache] Cached data is stale or missing, refreshing...
-🔄 [Analytics Cache] Processing fresh Facebook data...
-📋 [Analytics Cache] Report data keys: [
-  'hourly',
-  'adLevel',
-  'devices',
-  'regional',
-  'campaigns',
-  'platforms',
-  'date_range',
-  'scraped_at',
-  'demographics',
-  'month_identifier',
-  'collection_summary'
-]
-🎯 [generateFullAnalytics] STARTING ANALYTICS PROCESSING
-📂 [generateFullAnalytics] Data arrays: { campaigns: 25, demographics: 13, adLevel: 25 }
-🔍 Analytics Debug:
-📊 Demographics length: 13
-📊 First demo spend: 2148.984817
-📊 Campaigns length: 25
-📊 First campaign spend: 0
-📊 Total calculated spend: 43669.800001999996
-✨ [Analytics Cache] Analytics processing completed
-❌ [Analytics Cache] Failed to cache data: {
-  code: '23505',
-  details: 'Key (client_id)=(9) already exists.',
-  hint: null,
-  message: 'duplicate key value violates unique constraint "analytics_cache_client_id_key"'
-}
- GET /api/client/analytics/cached 200 in 4902ms
- ○ Compiling /client/analytics/campaign-types ...
- ✓ Compiled /client/analytics/campaign-types in 4.5s
- GET /client/analytics/campaign-types 200 in 5764ms
- GET /avatars/client.jpg 404 in 2181ms
-🔍 [Analytics Cache] Fetching cached data for client 9
-🔄 [Analytics Cache] Cached data is stale or missing, refreshing...
-🔄 [Analytics Cache] Processing fresh Facebook data...
-📋 [Analytics Cache] Report data keys: [
-  'hourly',
-  'adLevel',
-  'devices',
-  'regional',
-  'campaigns',
-  'platforms',
-  'date_range',
-  'scraped_at',
-  'demographics',
-  'month_identifier',
-  'collection_summary'
-]
-🎯 [generateFullAnalytics] STARTING ANALYTICS PROCESSING
-📂 [generateFullAnalytics] Data arrays: { campaigns: 25, demographics: 13, adLevel: 25 }
-🔍 Analytics Debug:
-📊 Demographics length: 13
-📊 First demo spend: 2148.984817
-📊 Campaigns length: 25
-📊 First campaign spend: 0
-📊 Total calculated spend: 43669.800001999996
-✨ [Analytics Cache] Analytics processing completed
-❌ [Analytics Cache] Failed to cache data: {
-  code: '23505',
-  details: 'Key (client_id)=(9) already exists.',
-  hint: null,
-  message: 'duplicate key value violates unique constraint "analytics_cache_client_id_key"'
-}
- GET /api/client/analytics/cached 200 in 5574ms
- ○ Compiling /client/analytics/engagement ...
- ✓ Compiled /client/analytics/engagement in 4.3s
- GET /client/analytics/engagement 200 in 5911ms
- GET /avatars/client.jpg 404 in 2127ms
-🔍 [Analytics Cache] Fetching cached data for client 9
-🔄 [Analytics Cache] Cached data is stale or missing, refreshing...
-🔄 [Analytics Cache] Processing fresh Facebook data...
-📋 [Analytics Cache] Report data keys: [
-  'hourly',
-  'adLevel',
-  'devices',
-  'regional',
-  'campaigns',
-  'platforms',
-  'date_range',
-  'scraped_at',
-  'demographics',
-  'month_identifier',
-  'collection_summary'
-]
-🎯 [generateFullAnalytics] STARTING ANALYTICS PROCESSING
-📂 [generateFullAnalytics] Data arrays: { campaigns: 25, demographics: 13, adLevel: 25 }
-🔍 Analytics Debug:
-📊 Demographics length: 13
-📊 First demo spend: 2148.984817
-📊 Campaigns length: 25
-📊 First campaign spend: 0
-📊 Total calculated spend: 43669.800001999996
-✨ [Analytics Cache] Analytics processing completed
-❌ [Analytics Cache] Failed to cache data: {
-  code: '23505',
-  details: 'Key (client_id)=(9) already exists.',
-  hint: null,
-  message: 'duplicate key value violates unique constraint "analytics_cache_client_id_key"'
-}
- GET /api/client/analytics/cached 200 in 4886ms
+✅ [Analytics Cache] Serving fresh cached data (153s old)
+ GET /api/client/analytics/cached 200 in 4602ms
  ○ Compiling /client/analytics/regional ...
- ✓ Compiled /client/analytics/regional in 4.8s
- GET /client/analytics/regional 200 in 6935ms
- GET /avatars/client.jpg 404 in 2020ms
+ ✓ Compiled /client/analytics/regional in 4.6s
+ GET /client/analytics/regional 200 in 6326ms
+ GET /avatars/client.jpg 404 in 2526ms
 🔍 [Analytics Cache] Fetching cached data for client 9
-🔄 [Analytics Cache] Cached data is stale or missing, refreshing...
-🔄 [Analytics Cache] Processing fresh Facebook data...
-📋 [Analytics Cache] Report data keys: [
-  'hourly',
-  'adLevel',
-  'devices',
-  'regional',
-  'campaigns',
-  'platforms',
-  'date_range',
-  'scraped_at',
-  'demographics',
-  'month_identifier',
-  'collection_summary'
-]
-🎯 [generateFullAnalytics] STARTING ANALYTICS PROCESSING
-📂 [generateFullAnalytics] Data arrays: { campaigns: 25, demographics: 13, adLevel: 25 }
-🔍 Analytics Debug:
-📊 Demographics length: 13
-📊 First demo spend: 2148.984817
-📊 Campaigns length: 25
-📊 First campaign spend: 0
-📊 Total calculated spend: 43669.800001999996
-✨ [Analytics Cache] Analytics processing completed
-❌ [Analytics Cache] Failed to cache data: {
-  code: '23505',
-  details: 'Key (client_id)=(9) already exists.',
-  hint: null,
-  message: 'duplicate key value violates unique constraint "analytics_cache_client_id_key"'
-}
- GET /api/client/analytics/cached 200 in 5872ms
- GET /client/analytics/demographics 200 in 1342ms
- GET /avatars/client.jpg 404 in 2563ms
+✅ [Analytics Cache] Serving fresh cached data (187s old)
+ GET /api/client/analytics/cached 200 in 4533ms
+ ○ Compiling /client/analytics/engagement ...
+ ✓ Compiled /client/analytics/engagement in 2.3s
+ GET /client/analytics/engagement 200 in 4091ms
+ GET /avatars/client.jpg 404 in 1876ms
 🔍 [Analytics Cache] Fetching cached data for client 9
-🔄 [Analytics Cache] Cached data is stale or missing, refreshing...
-🔄 [Analytics Cache] Processing fresh Facebook data...
-📋 [Analytics Cache] Report data keys: [
-  'hourly',
-  'adLevel',
-  'devices',
-  'regional',
-  'campaigns',
-  'platforms',
-  'date_range',
-  'scraped_at',
-  'demographics',
-  'month_identifier',
-  'collection_summary'
-]
-🎯 [generateFullAnalytics] STARTING ANALYTICS PROCESSING
-📂 [generateFullAnalytics] Data arrays: { campaigns: 25, demographics: 13, adLevel: 25 }
-🔍 Analytics Debug:
-📊 Demographics length: 13
-📊 First demo spend: 2148.984817
-📊 Campaigns length: 25
-📊 First campaign spend: 0
-📊 Total calculated spend: 43669.800001999996
-✨ [Analytics Cache] Analytics processing completed
-❌ [Analytics Cache] Failed to cache data: {
-  code: '23505',
-  details: 'Key (client_id)=(9) already exists.',
-  hint: null,
-  message: 'duplicate key value violates unique constraint "analytics_cache_client_id_key"'
-}
- GET /api/client/analytics/cached 200 in 4385ms
+✅ [Analytics Cache] Serving fresh cached data (209s old)
+ GET /api/client/analytics/cached 200 in 3864ms
+ ○ Compiling /client/analytics/campaign-types ...
+ ✓ Compiled /client/analytics/campaign-types in 4.9s
+ GET /client/analytics/campaign-types 200 in 6659ms
+ GET /avatars/client.jpg 404 in -114ms
+🔍 [Analytics Cache] Fetching cached data for client 9
+✅ [Analytics Cache] Serving fresh cached data (230s old)
+ GET /api/client/analytics/cached 200 in 1974ms
+ ○ Compiling /client/analytics/campaigns ...
+ ✓ Compiled /client/analytics/campaigns in 5s
+ GET /client/analytics/campaigns 200 in 6710ms
+ GET /avatars/client.jpg 404 in 2663ms
+🔍 [Analytics Cache] Fetching cached data for client 9
+✅ [Analytics Cache] Serving fresh cached data (336s old)
+ GET /api/client/analytics/cached 200 in 4210ms
+ GET /client/analytics/campaign-types 200 in 1785ms
+ GET /avatars/client.jpg 404 in 2100ms
+🔍 [Analytics Cache] Fetching cached data for client 9
+✅ [Analytics Cache] Serving fresh cached data (382s old)
+ GET /api/client/analytics/cached 200 in 4013ms

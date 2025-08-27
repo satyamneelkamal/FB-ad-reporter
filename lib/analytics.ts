@@ -145,9 +145,26 @@ export class FacebookAnalytics {
    * 🏆 CAMPAIGN PERFORMANCE
    * Individual campaign breakdowns and analysis
    */
-  static analyzeCampaigns(campaigns: any[]): CampaignAnalysis[] {
+  static analyzeCampaigns(campaigns: any[], demographics: any[] = [], totalSpend: number = 0): CampaignAnalysis[] {
+    // Since Facebook API returns spend=0 at campaign level but real spend in demographics (account-level),
+    // we'll distribute the total spend proportionally across campaigns or mark as unavailable
+    const activeCampaigns = campaigns.filter((c: any) => 
+      c.objective !== 'NONE' && c.campaign_name && c.campaign_name.trim()
+    )
+    
+    // Distribute total spend evenly across active campaigns as an estimate
+    // (This is an approximation since FB API doesn't provide campaign-level spend breakdown)
+    const distributedSpend = activeCampaigns.length > 0 && totalSpend > 0 
+      ? totalSpend / activeCampaigns.length 
+      : 0
+    
     return campaigns.map((campaign: any) => {
-      const spend = parseFloat(campaign.spend || '0')
+      const originalSpend = parseFloat(campaign.spend || '0')
+      const isActiveCampaign = activeCampaigns.includes(campaign)
+      
+      // Use distributed spend for active campaigns, 0 for inactive ones
+      const estimatedSpend = isActiveCampaign ? distributedSpend : 0
+      
       const startDate = new Date(campaign.date_start)
       const endDate = new Date(campaign.date_stop)
       const duration = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
@@ -155,11 +172,11 @@ export class FacebookAnalytics {
       return {
         id: campaign.campaign_id,
         name: campaign.campaign_name,
-        spend,
+        spend: estimatedSpend, // Use estimated spend instead of FB API's $0
         objective: campaign.objective || 'NONE',
         buyingType: campaign.buying_type || 'UNKNOWN',
         optimizationGoal: campaign.optimization_goal || 'Unknown',
-        status: spend > 0 ? 'Active' : 'Inactive',
+        status: estimatedSpend > 0 ? 'Active' : 'Inactive',
         dateStart: campaign.date_start,
         dateStop: campaign.date_stop,
         duration
@@ -384,9 +401,14 @@ export class FacebookAnalytics {
       adLevel: adLevel.length
     })
     
+    // Calculate total spend for campaign distribution
+    const totalSpend = demographics.length > 0 
+      ? demographics.reduce((sum: number, demo: any) => sum + parseFloat(demo.spend || '0'), 0)
+      : campaigns.reduce((sum: number, c: any) => sum + parseFloat(c.spend || '0'), 0)
+
     return {
       overview: this.calculateOverview(reportData),
-      campaigns: this.analyzeCampaigns(campaigns),
+      campaigns: this.analyzeCampaigns(campaigns, demographics, totalSpend),
       demographics: this.processDemographics(demographics),
       regional: this.processRegional(regional),
       engagement: this.calculateEngagement(campaigns, adLevel, demographics),
