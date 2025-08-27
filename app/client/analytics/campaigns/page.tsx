@@ -119,7 +119,7 @@ export default function CampaignPerformancePage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${analytics.campaigns.reduce((sum, c) => sum + c.spend, 0)}
+              ${analytics.overview?.totalSpend ? Math.round(analytics.overview.totalSpend).toLocaleString() : '0'}
             </div>
             <p className="text-xs text-muted-foreground">
               Across all campaigns
@@ -133,9 +133,9 @@ export default function CampaignPerformancePage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${analytics.campaigns.length > 0 ? 
-                (analytics.campaigns.reduce((sum, c) => sum + c.spend, 0) / analytics.campaigns.length).toFixed(2) : 
-                0
+              ${analytics.campaigns.length > 0 && analytics.overview?.totalSpend ? 
+                Math.round(analytics.overview.totalSpend / analytics.campaigns.length).toLocaleString() : 
+                '0'
               }
             </div>
             <p className="text-xs text-muted-foreground">

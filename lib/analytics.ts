@@ -102,11 +102,19 @@ export class FacebookAnalytics {
     const adLevel = reportData.adLevel || []
     const demographics = reportData.demographics || []
     
+    console.log('🔍 Analytics Debug:')
+    console.log('📊 Demographics length:', demographics.length)
+    console.log('📊 First demo spend:', demographics[0]?.spend)
+    console.log('📊 Campaigns length:', campaigns.length)
+    console.log('📊 First campaign spend:', campaigns[0]?.spend)
+    
     // FIXED: Get real spend from demographics data (where actual spend is recorded)
     // Facebook API returns spend=0 for campaigns but real spend in demographics breakdowns
     const totalSpend = demographics.length > 0 
       ? demographics.reduce((sum: number, demo: any) => sum + parseFloat(demo.spend || '0'), 0)
       : campaigns.reduce((sum: number, c: any) => sum + parseFloat(c.spend || '0'), 0)
+    
+    console.log('📊 Total calculated spend:', totalSpend)
     
     // Count campaigns that have any activity (not just spend > 0, since spend is in demographics)
     const activeCampaigns = totalSpend > 0 
@@ -361,6 +369,7 @@ export class FacebookAnalytics {
    * Generate all analytics sections at once
    */
   static generateFullAnalytics(reportData: any) {
+    console.log('🎯 [generateFullAnalytics] STARTING ANALYTICS PROCESSING')
     const campaigns = reportData.campaigns || []
     const adLevel = reportData.adLevel || []
     const demographics = reportData.demographics || []
@@ -368,6 +377,12 @@ export class FacebookAnalytics {
     const devices = reportData.devices || []
     const platforms = reportData.platforms || []
     const hourly = reportData.hourly || []
+    
+    console.log('📂 [generateFullAnalytics] Data arrays:', {
+      campaigns: campaigns.length,
+      demographics: demographics.length,
+      adLevel: adLevel.length
+    })
     
     return {
       overview: this.calculateOverview(reportData),

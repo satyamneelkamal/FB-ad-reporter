@@ -95,7 +95,7 @@ export default function EngagementMetricsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {engagement.totalClicks.toLocaleString()}
+              {engagement.totalClicks?.toLocaleString() || '0'}
             </div>
             <p className="text-xs text-muted-foreground">
               Across all campaigns
@@ -110,7 +110,7 @@ export default function EngagementMetricsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {engagement.totalImpressions.toLocaleString()}
+              {engagement.totalImpressions?.toLocaleString() || '0'}
             </div>
             <p className="text-xs text-muted-foreground">
               Total ad views
@@ -237,8 +237,8 @@ export default function EngagementMetricsPage() {
                 <p className="text-sm text-muted-foreground mt-1">
                   {engagement.totalClicks > 0 ? (
                     <>
-                      Your campaigns generated <strong>{engagement.totalClicks.toLocaleString()} clicks</strong> 
-                      from <strong>{engagement.totalImpressions.toLocaleString()} impressions</strong>, 
+                      Your campaigns generated <strong>{engagement.totalClicks?.toLocaleString() || '0'} clicks</strong> 
+                      from <strong>{engagement.totalImpressions?.toLocaleString() || '0'} impressions</strong>, 
                       resulting in a {engagement.ctr.toFixed(2)}% click-through rate.
                     </>
                   ) : (

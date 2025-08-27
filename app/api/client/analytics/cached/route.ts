@@ -88,7 +88,9 @@ export async function GET(request: NextRequest) {
 
     // Process the raw Facebook data into analytics
     console.log(`🔄 [Analytics Cache] Processing fresh Facebook data...`)
+    console.log(`📋 [Analytics Cache] Report data keys:`, Object.keys(reportData.report_data))
     const processedAnalytics = FacebookAnalytics.generateFullAnalytics(reportData.report_data)
+    console.log(`✨ [Analytics Cache] Analytics processing completed`)
 
     // Cache the processed data
     const { error: upsertError } = await supabaseAdmin

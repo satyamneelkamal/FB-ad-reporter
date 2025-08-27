@@ -164,7 +164,7 @@ export function EngagementVolumeArea({ data = [], loading }: EngagementVolumeAre
               content={<ChartTooltipContent 
                 formatter={(value, name) => {
                   if (name === 'clicks') return [value, 'Clicks']
-                  if (name === 'impressions') return [value.toLocaleString(), 'Impressions']
+                  if (name === 'impressions') return [value?.toLocaleString() || '0', 'Impressions']
                   if (name === 'engagement') return [value, 'Total Engagement']
                   return [value, name]
                 }}

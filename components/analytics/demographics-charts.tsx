@@ -167,7 +167,7 @@ export function GenderDemographicsDonut({ data = [], loading }: GenderDemographi
             />
             <ChartTooltip 
               content={<ChartTooltipContent 
-                formatter={(value, name) => [value.toLocaleString(), 'Audience']}
+                formatter={(value, name) => [value?.toLocaleString() || '0', 'Audience']}
                 labelFormatter={(label, payload) => {
                   if (payload && payload[0]) {
                     const data = payload[0].payload
@@ -338,9 +338,9 @@ export function DemographicsSummary({ data = {}, loading }: DemographicsSummaryP
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{summaryData.topAgeGroup.count.toLocaleString()}</div>
+          <div className="text-2xl font-bold">{summaryData.topAgeGroup.count?.toLocaleString() || '0'}</div>
           <div className="text-xs text-muted-foreground mt-1">
-            ${summaryData.topAgeGroup.spend} spend
+            ${summaryData.topAgeGroup.spend || 0} spend
           </div>
         </CardContent>
       </Card>
@@ -353,9 +353,9 @@ export function DemographicsSummary({ data = {}, loading }: DemographicsSummaryP
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{summaryData.topGender.count.toLocaleString()}</div>
+          <div className="text-2xl font-bold">{summaryData.topGender.count?.toLocaleString() || '0'}</div>
           <div className="text-xs text-muted-foreground mt-1">
-            ${summaryData.topGender.spend} spend
+            ${summaryData.topGender.spend || 0} spend
           </div>
         </CardContent>
       </Card>
@@ -365,7 +365,7 @@ export function DemographicsSummary({ data = {}, loading }: DemographicsSummaryP
           <CardTitle className="text-sm font-medium">Total Audience</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{summaryData.totalAudience.toLocaleString()}</div>
+          <div className="text-2xl font-bold">{summaryData.totalAudience?.toLocaleString() || '0'}</div>
           <div className="text-xs text-muted-foreground mt-1">
             Reached users
           </div>

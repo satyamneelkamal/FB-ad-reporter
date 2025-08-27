@@ -104,7 +104,7 @@ export function RegionalSpendBar({ data = [], loading }: RegionalSpendBarProps) 
                         <div className="font-medium">{label}</div>
                         <div className="text-sm text-muted-foreground mt-1">
                           <div>CTR: {data.ctr}% • CPC: ${data.cpc} • CPM: ${data.cpm}</div>
-                          <div>Reach: {data.reach.toLocaleString()}</div>
+                          <div>Reach: {data.reach?.toLocaleString() || '0'}</div>
                         </div>
                       </div>
                     )
@@ -294,7 +294,7 @@ export function RegionalCTRLine({ data = [], loading }: RegionalCTRLineProps) {
                       <div>
                         <div className="font-medium">{label}</div>
                         <div className="text-sm text-muted-foreground mt-1">
-                          <div>Reach: {data.reach.toLocaleString()}</div>
+                          <div>Reach: {data.reach?.toLocaleString() || '0'}</div>
                         </div>
                       </div>
                     )
@@ -405,10 +405,10 @@ export function RegionalTable({ data = [], loading }: RegionalTableProps) {
                     ${region.spend}
                   </TableCell>
                   <TableCell className="text-right">
-                    {region.clicks.toLocaleString()}
+                    {region.clicks?.toLocaleString() || '0'}
                   </TableCell>
                   <TableCell className="text-right">
-                    {region.reach.toLocaleString()}
+                    {region.reach?.toLocaleString() || '0'}
                   </TableCell>
                   <TableCell className="text-right">
                     <Badge variant={region.ctr >= 1.0 ? "default" : region.ctr >= 0.8 ? "secondary" : "outline"}>

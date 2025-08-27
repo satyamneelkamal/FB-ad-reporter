@@ -90,9 +90,9 @@ export function DeviceDistributionPie({ data = [], loading }: DeviceDistribution
                       <div>
                         <div className="font-medium">{label}</div>
                         <div className="text-sm text-muted-foreground mt-1">
-                          <div>Clicks: {data.clicks.toLocaleString()}</div>
+                          <div>Clicks: {data.clicks?.toLocaleString() || '0'}</div>
                           <div>CTR: {data.ctr}%</div>
-                          <div>Impressions: {data.impressions.toLocaleString()}</div>
+                          <div>Impressions: {data.impressions?.toLocaleString() || '0'}</div>
                         </div>
                       </div>
                     )
@@ -182,7 +182,7 @@ export function PlatformPerformanceBar({ data = [], loading }: PlatformPerforman
                         <div className="font-medium">{label}</div>
                         <div className="text-sm text-muted-foreground mt-1">
                           <div>CPC: ${data.cpc}</div>
-                          <div>Impressions: {data.impressions.toLocaleString()}</div>
+                          <div>Impressions: {data.impressions?.toLocaleString() || '0'}</div>
                         </div>
                       </div>
                     )
@@ -284,10 +284,10 @@ export function DevicePerformanceTable({ data = [], loading }: DevicePerformance
                     ${device.spend}
                   </TableCell>
                   <TableCell className="text-right">
-                    {device.clicks.toLocaleString()}
+                    {device.clicks?.toLocaleString() || '0'}
                   </TableCell>
                   <TableCell className="text-right">
-                    {device.impressions.toLocaleString()}
+                    {device.impressions?.toLocaleString() || '0'}
                   </TableCell>
                   <TableCell className="text-right">
                     <Badge variant={device.ctr >= 1.5 ? "default" : device.ctr >= 1.0 ? "secondary" : "outline"}>

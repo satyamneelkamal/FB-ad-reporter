@@ -87,7 +87,7 @@ export default function DemographicsAnalysisPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalAudience.toLocaleString()}</div>
+            <div className="text-2xl font-bold">{totalAudience?.toLocaleString() || '0'}</div>
             <p className="text-xs text-muted-foreground">
               Reached users
             </p>
@@ -232,7 +232,7 @@ export default function DemographicsAnalysisPage() {
                 <h4 className="font-medium text-foreground">Audience Characteristics</h4>
                 <p className="text-sm text-muted-foreground mt-1">
                   With an average age of <strong>{averageAge} years</strong> across{' '}
-                  <strong>{totalAudience.toLocaleString()} users</strong>, your audience represents 
+                  <strong>{totalAudience?.toLocaleString() || '0'} users</strong>, your audience represents 
                   a {averageAge < 30 ? 'younger' : averageAge > 45 ? 'mature' : 'middle-aged'} demographic 
                   that typically responds well to {averageAge < 30 ? 'mobile-first, visual content' : 
                   averageAge > 45 ? 'informative, value-driven messaging' : 'balanced content strategies'}.
