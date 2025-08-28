@@ -14,7 +14,7 @@ import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar"
-import { Loader2, Database, Calendar, CheckCircle, AlertCircle, RefreshCw, Zap } from 'lucide-react';
+import { Loader2, Database, Calendar, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
 
 interface Client {
   id: number;
@@ -83,8 +83,6 @@ export default function AdminScrapePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [cacheRefreshing, setCacheRefreshing] = useState(false);
-  const [cacheResult, setCacheResult] = useState('');
 
   // Generate default month (current month)
   useEffect(() => {
@@ -310,126 +308,6 @@ export default function AdminScrapePage() {
         </CardContent>
       </Card>
 
-      {/* Analytics Cache Management */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Analytics Cache Management</CardTitle>
-          <p className="text-sm text-gray-600">
-            Refresh processed analytics data to speed up client dashboards
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Button
-              onClick={async () => {
-                setCacheRefreshing(true)
-                try {
-                  const response = await fetch('/api/admin/refresh-analytics-cache', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({})
-                  })
-                  const result = await response.json()
-                  
-                  if (result.success) {
-                    setCacheResult(`✅ Cache refreshed: ${result.summary.success} clients updated`)
-                  } else {
-                    setCacheResult(`❌ Error: ${result.error}`)
-                  }
-                } catch (error) {
-                  setCacheResult(`❌ Network error: ${error.message}`)
-                } finally {
-                  setCacheRefreshing(false)
-                }
-              }}
-              disabled={cacheRefreshing}
-              variant="outline"
-              className="h-auto py-4"
-            >
-              {cacheRefreshing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Refreshing All Caches...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Refresh All Client Caches
-                </>
-              )}
-            </Button>
-
-            <Button
-              onClick={async () => {
-                if (!selectedClient) {
-                  setCacheResult('⚠️ Please select a client first')
-                  return
-                }
-                
-                setCacheRefreshing(true)
-                try {
-                  const response = await fetch('/api/admin/refresh-analytics-cache', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ clientId: parseInt(selectedClient) })
-                  })
-                  const result = await response.json()
-                  
-                  if (result.success) {
-                    const clientResult = result.results[0]
-                    if (clientResult.status === 'success') {
-                      setCacheResult(`✅ Cache refreshed for ${clientResult.clientName}`)
-                    } else {
-                      setCacheResult(`❌ ${clientResult.reason || clientResult.error}`)
-                    }
-                  } else {
-                    setCacheResult(`❌ Error: ${result.error}`)
-                  }
-                } catch (error) {
-                  setCacheResult(`❌ Network error: ${error.message}`)
-                } finally {
-                  setCacheRefreshing(false)
-                }
-              }}
-              disabled={cacheRefreshing || !selectedClient}
-              variant="default"
-              className="h-auto py-4"
-            >
-              {cacheRefreshing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Refreshing Cache...
-                </>
-              ) : (
-                <>
-                  <Zap className="mr-2 h-4 w-4" />
-                  Refresh Selected Client
-                </>
-              )}
-            </Button>
-          </div>
-
-          {cacheResult && (
-            <div className={`p-3 rounded-md border ${
-              cacheResult.startsWith('✅') ? 'bg-green-50 border-green-200 text-green-800' :
-              cacheResult.startsWith('⚠️') ? 'bg-yellow-50 border-yellow-200 text-yellow-800' :
-              'bg-red-50 border-red-200 text-red-800'
-            }`}>
-              <pre className="text-sm whitespace-pre-wrap">{cacheResult}</pre>
-            </div>
-          )}
-
-          <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-md">
-            <p><strong>How it works:</strong></p>
-            <ul className="mt-1 space-y-1 list-disc list-inside">
-              <li>Processes raw Facebook data into chart-ready analytics</li>
-              <li>Stores processed data in Supabase for instant loading</li>
-              <li>Client dashboards load in &lt;1 second instead of 10+ seconds</li>
-              <li>Cache automatically expires after 1 hour</li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Scraping History */}
       <Card>

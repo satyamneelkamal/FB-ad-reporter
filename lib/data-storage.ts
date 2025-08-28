@@ -100,30 +100,8 @@ export async function collectAndStoreClientData(
     - Quality score: ${qualityReport.overall_score}/100
     - Storage time: ${storageTime}ms`)
 
-    // Step 6: Automatically generate analytics cache
-    console.log('🔄 Generating analytics cache automatically...')
-    try {
-      const processedAnalytics = FacebookAnalytics.generateFullAnalytics(cleanedData as any)
-      
-      const { error: cacheError } = await supabaseAdmin
-        .from('analytics_cache')
-        .upsert({
-          client_id: client.id,
-          analytics_data: processedAnalytics,
-          last_updated: new Date().toISOString(),
-          data_source: 'facebook_api'
-        })
-
-      if (cacheError) {
-        console.error(`⚠️  Failed to cache analytics for ${client.name}:`, cacheError)
-        // Don't fail the entire operation if cache generation fails
-      } else {
-        console.log(`✅ Analytics cache generated for ${client.name}`)
-      }
-    } catch (cacheError) {
-      console.error(`⚠️  Error generating analytics cache for ${client.name}:`, cacheError)
-      // Don't fail the entire operation if cache generation fails
-    }
+    // Analytics will be processed on-demand when requested by the client
+    // No need for caching since Supabase already stores the data efficiently
 
     return {
       success: true,

@@ -194,7 +194,7 @@ export function useAnalytics() {
     try {
       setData(prev => ({ ...prev, loading: true, error: null }))
       
-      const response = await fetch('/api/client/analytics/cached', {
+      const response = await fetch('/api/client/analytics', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
