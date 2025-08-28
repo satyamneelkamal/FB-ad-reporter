@@ -14,6 +14,11 @@ const clientNavigation = {
   },
   navMain: [
     {
+      title: "Analytics Overview",
+      url: "/client/analytics",
+      icon: "IconChartBar",
+    },
+    {
       title: "Campaigns",
       url: "/client/analytics/campaigns",
       icon: "IconTarget",
@@ -49,8 +54,12 @@ const clientNavigation = {
       title: "Core Analytics",
       icon: "IconChartPie",
       isActive: true,
-      url: "/client/analytics/campaigns",
+      url: "/client/analytics",
       items: [
+        {
+          title: "Overview",
+          url: "/client/analytics",
+        },
         {
           title: "Campaigns",
           url: "/client/analytics/campaigns",
