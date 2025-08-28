@@ -7,12 +7,6 @@
 'use client'
 
 import { useAnalytics } from '@/hooks/useAnalytics'
-import { 
-  RegionalSpendBar,
-  RegionalPerformancePie,
-  RegionalCTRLine,
-  RegionalTable
-} from '@/components/analytics/regional-charts'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -55,7 +49,7 @@ export default function RegionalAnalysisPage() {
   const totalRegions = regionalData.length
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -103,7 +97,7 @@ export default function RegionalAnalysisPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalRegionalSpend}</div>
+            <div className="text-2xl font-bold">₹{totalRegionalSpend}</div>
             <p className="text-xs text-muted-foreground">
               Across all regions
             </p>
@@ -117,7 +111,7 @@ export default function RegionalAnalysisPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${topPerformingRegion?.spend || 0}
+              ₹{topPerformingRegion?.spend || 0}
             </div>
             <p className="text-xs text-muted-foreground">
               {topPerformingRegion?.region || 'N/A'}
@@ -141,35 +135,62 @@ export default function RegionalAnalysisPage() {
         </Card>
       </div>
 
-      {/* Charts Grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Regional Spend Bar Chart - spans 2 columns */}
-        <div className="lg:col-span-2">
-          <RegionalSpendBar 
-            data={regionalData}
-            loading={analytics.loading}
-          />
+      {/* Regional Performance Cards */}
+      {regionalData && regionalData.length > 0 && (
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Regional Performance Breakdown</h2>
+          <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            {regionalData
+              .sort((a, b) => b.spend - a.spend)
+              .map((region, index) => (
+                <Card key={region.region}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base font-medium flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: `hsl(var(--chart-${(index % 5) + 1}))` }}
+                      />
+                      {region.region}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-muted-foreground">Spend</span>
+                        <span className="font-semibold">₹{Math.round(region.spend).toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-muted-foreground">Clicks</span>
+                        <span className="font-semibold">{region.clicks?.toLocaleString() || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-muted-foreground">Impressions</span>
+                        <span className="font-semibold">{region.impressions?.toLocaleString() || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-muted-foreground">CTR</span>
+                        <span className="font-semibold">{region.ctr?.toFixed(2) || '0.00'}%</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-muted-foreground">Share</span>
+                        <span className="font-semibold">{region.percentage?.toFixed(1) || '0.0'}%</span>
+                      </div>
+                      {region.cpc && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">CPC</span>
+                          <span className="font-semibold">₹{region.cpc.toFixed(2)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+          </div>
         </div>
+      )}
 
-        {/* Regional Distribution Pie Chart */}
-        <RegionalPerformancePie 
-          data={regionalData?.map(r => ({
-            region: r.region,
-            spend: r.spend,
-            percentage: r.percentage
-          }))}
-          loading={analytics.loading}
-        />
-
-        {/* Regional CTR Performance Line Chart */}
-        <RegionalCTRLine 
-          data={regionalData}
-          loading={analytics.loading}
-        />
-
-        {/* Performance Insights */}
-        <div className="lg:col-span-2">
-          <Card>
+      {/* Performance Insights */}
+      <Card>
             <CardHeader>
               <CardTitle>Regional Insights</CardTitle>
               <CardDescription>
@@ -185,7 +206,7 @@ export default function RegionalAnalysisPage() {
                       {topPerformingRegion ? (
                         <>
                           <strong>{topPerformingRegion.region}</strong> is your largest market, 
-                          accounting for <strong>${topPerformingRegion.spend}</strong> in spend
+                          accounting for <strong>₹{topPerformingRegion.spend}</strong> in spend
                           {totalRegionalSpend > 0 && (
                             <> ({((topPerformingRegion.spend / totalRegionalSpend) * 100).toFixed(1)}% of total)</>
                           )}
@@ -227,14 +248,7 @@ export default function RegionalAnalysisPage() {
               )}
             </CardContent>
           </Card>
-        </div>
-      </div>
 
-      {/* Detailed Regional Performance Table */}
-      <RegionalTable 
-        data={regionalData}
-        loading={analytics.loading}
-      />
 
       {/* Performance Recommendations */}
       {!analytics.loading && totalRegions > 0 && (

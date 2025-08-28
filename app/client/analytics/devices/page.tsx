@@ -7,12 +7,6 @@
 'use client'
 
 import { useAnalytics } from '@/hooks/useAnalytics'
-import { 
-  DeviceDistributionPie,
-  PlatformPerformanceBar,
-  DevicePerformanceTable,
-  DeviceSummary
-} from '@/components/analytics/devices-charts'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { RefreshCw, AlertCircle, Smartphone, Monitor, Tablet, Globe } from "lucide-react"
@@ -58,7 +52,7 @@ export default function DevicesAnalysisPage() {
   const averageCTR = devicesData.devices?.reduce((sum, d) => sum + (d.ctr || 0), 0) / (devicesData.devices?.length || 1) || 1.4
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -108,7 +102,7 @@ export default function DevicesAnalysisPage() {
           <CardContent>
             <div className="text-2xl font-bold">{topDevice?.device || 'Mobile'}</div>
             <p className="text-xs text-muted-foreground">
-              ${topDevice?.spend || 6450} spend
+              ₹{topDevice?.spend || 6450} spend
             </p>
           </CardContent>
         </Card>
@@ -140,42 +134,96 @@ export default function DevicesAnalysisPage() {
         </Card>
       </div>
 
-      {/* Device Summary Cards */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Device Performance Overview</h2>
-        <DeviceSummary 
-          data={{
-            topDevice: topDevice ? { device: topDevice.device, spend: topDevice.spend, ctr: topDevice.ctr || 1.77 } : undefined,
-            totalDevices: totalDevices || 3,
-            mobileShare,
-            averageCTR
-          }}
-          loading={analytics.loading}
-        />
-      </div>
-
-      {/* Charts Grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Device Distribution Pie Chart */}
-        <DeviceDistributionPie 
-          data={devicesData.devices}
-          loading={analytics.loading}
-        />
-
-        {/* Platform Performance Bar Chart - spans 2 columns */}
-        <div className="lg:col-span-2">
-          <PlatformPerformanceBar 
-            data={platformsData.platforms}
-            loading={analytics.loading}
-          />
+      {/* Device Performance Cards */}
+      {devicesData.devices && devicesData.devices.length > 0 && (
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Device Performance Breakdown</h2>
+          <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            {devicesData.devices.map((device, index) => (
+              <Card key={device.device}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base font-medium flex items-center gap-2">
+                    {device.device.toLowerCase().includes('mobile') ? (
+                      <Smartphone className="h-4 w-4" />
+                    ) : device.device.toLowerCase().includes('desktop') ? (
+                      <Monitor className="h-4 w-4" />
+                    ) : (
+                      <Tablet className="h-4 w-4" />
+                    )}
+                    {device.device}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Spend</span>
+                      <span className="font-semibold">₹{Math.round(device.spend).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Clicks</span>
+                      <span className="font-semibold">{device.clicks?.toLocaleString() || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Impressions</span>
+                      <span className="font-semibold">{device.impressions?.toLocaleString() || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">CTR</span>
+                      <span className="font-semibold">{device.ctr?.toFixed(2) || '1.40'}%</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Share</span>
+                      <span className="font-semibold">{device.percentage?.toFixed(1) || '0.0'}%</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Device Performance Table */}
-      <DevicePerformanceTable 
-        data={devicesData.devices}
-        loading={analytics.loading}
-      />
+      {/* Platform Performance Cards */}
+      {platformsData.platforms && platformsData.platforms.length > 0 && (
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Platform Performance</h2>
+          <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+            {platformsData.platforms.map((platform, index) => (
+              <Card key={platform.platform}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base font-medium flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: `hsl(var(--chart-${(index % 5) + 1}))` }}
+                    />
+                    {platform.platform}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Spend</span>
+                      <span className="font-semibold">₹{Math.round(platform.spend).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Clicks</span>
+                      <span className="font-semibold">{platform.clicks?.toLocaleString() || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">CTR</span>
+                      <span className="font-semibold">{platform.ctr?.toFixed(2) || '1.40'}%</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Share</span>
+                      <span className="font-semibold">{platform.percentage?.toFixed(1) || '0.0'}%</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Device Insights */}
       {!analytics.loading && (
@@ -194,7 +242,7 @@ export default function DevicesAnalysisPage() {
                   {topDevice ? (
                     <>
                       <strong>{topDevice.device}</strong> devices drive the majority of your ad spend 
-                      (${topDevice.spend}), indicating strong mobile-first user behavior. 
+                      (₹{topDevice.spend}), indicating strong mobile-first user behavior. 
                       Consider optimizing creative content for mobile viewing.
                     </>
                   ) : (

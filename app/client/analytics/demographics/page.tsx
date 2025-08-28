@@ -7,11 +7,6 @@
 'use client'
 
 import { useAnalytics } from '@/hooks/useAnalytics'
-import { 
-  AgeDemographicsPie,
-  GenderDemographicsDonut,
-  AgePerformanceBar
-} from '@/components/analytics/demographics-charts'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { RefreshCw, AlertCircle, Users, UserCheck, TrendingUp, Target } from "lucide-react"
@@ -51,7 +46,7 @@ export default function DemographicsAnalysisPage() {
   const averageAge = demographicsData.averageAge || 32.5
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -134,37 +129,85 @@ export default function DemographicsAnalysisPage() {
       </div>
 
 
-      {/* Charts Grid */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Age Demographics Pie Chart */}
-        <AgeDemographicsPie 
-          data={demographicsData.topPerformingAges}
-          loading={analytics.loading}
-        />
+      {/* Age Demographics Summary Cards */}
+      {demographicsData.topPerformingAges && (
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Age Group Breakdown</h2>
+          <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            {demographicsData.topPerformingAges.slice(0, 6).map((ageGroup, index) => (
+              <Card key={ageGroup.ageGroup}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base font-medium flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: `hsl(var(--chart-${(index % 5) + 1}))` }}
+                    />
+                    {ageGroup.ageGroup}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Audience</span>
+                      <span className="font-semibold">{ageGroup.count?.toLocaleString() || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Spend</span>
+                      <span className="font-semibold">₹{Math.round(ageGroup.spend).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Share</span>
+                      <span className="font-semibold">{ageGroup.percentage?.toFixed(1)}%</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Actions</span>
+                      <span className="font-semibold">{ageGroup.actions || 'N/A'}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
-        {/* Gender Demographics Donut Chart */}
-        <GenderDemographicsDonut 
-          data={demographicsData.genders ? Object.entries(demographicsData.genders).map(([gender, count]) => ({
-            gender,
-            count: count as number,
-            spend: gender === 'Female' ? 5820 : 3900,
-            percentage: gender === 'Female' ? 59.2 : 40.8
-          })) : undefined}
-          loading={analytics.loading}
-        />
-      </div>
-
-      {/* Age Performance Bar Chart - Full Width */}
-      <AgePerformanceBar 
-        data={demographicsData.topPerformingAges?.map(age => ({
-          ageGroup: age.ageGroup,
-          spend: age.spend,
-          clicks: Math.floor(age.spend / 1.8), // Estimated clicks based on typical CPC
-          ctr: 1.8 - (Math.random() * 0.6), // Simulated CTR variation
-          cpc: 1.5 + (Math.random() * 1.0) // Simulated CPC variation
-        }))}
-        loading={analytics.loading}
-      />
+      {/* Gender Demographics Summary Cards */}
+      {demographicsData.genders && (
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Gender Distribution</h2>
+          <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+            {Object.entries(demographicsData.genders).map(([gender, count], index) => (
+              <Card key={gender}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base font-medium flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: `hsl(var(--chart-${(index % 5) + 1}))` }}
+                    />
+                    {gender}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Count</span>
+                      <span className="font-semibold">{(count as number).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Spend</span>
+                      <span className="font-semibold">₹{gender === 'Female' ? '5,820' : '3,900'}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Share</span>
+                      <span className="font-semibold">{gender === 'Female' ? '59.2' : '40.8'}%</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Demographics Insights */}
       {!analytics.loading && (
@@ -184,7 +227,7 @@ export default function DemographicsAnalysisPage() {
                     <>
                       Your primary audience is in the <strong>{topAgeGroup.ageGroup}</strong> age range, 
                       representing <strong>{topAgeGroup.percentage?.toFixed(1)}%</strong> of your total 
-                      audience with <strong>${topAgeGroup.spend}</strong> in ad spend.
+                      audience with <strong>₹{topAgeGroup.spend}</strong> in ad spend.
                     </>
                   ) : (
                     <>

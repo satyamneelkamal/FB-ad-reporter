@@ -80,7 +80,7 @@ export function useAnalytics() {
       const metricCards: MetricCardData[] = [
         {
           title: 'Total Ad Spend',
-          value: `$${rawData.overview?.totalSpend || 0}`,
+          value: `₹${rawData.overview?.totalSpend || 0}`,
           trend: 'neutral'
         },
         {

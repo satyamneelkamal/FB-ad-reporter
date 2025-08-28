@@ -27,6 +27,16 @@
       "env": {
         "SUPABASE_ACCESS_TOKEN": "sbp_35eec82c46f73ad086e34ae1079cf399c663510f"
       }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest",
+        "--browser",
+        "chromium"
+      ],
+      "env": {}
     }
   }
 }

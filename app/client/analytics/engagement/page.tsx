@@ -7,12 +7,6 @@
 'use client'
 
 import { useAnalytics } from '@/hooks/useAnalytics'
-import { 
-  CTRPerformanceLine,
-  EngagementVolumeArea,
-  EngagementRadar,
-  CampaignEngagementComparison
-} from '@/components/analytics/engagement-charts'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { RefreshCw, AlertCircle, MousePointer, Eye, Heart, TrendingUp } from "lucide-react"
@@ -59,7 +53,7 @@ export default function EngagementMetricsPage() {
     (totalSpend / engagement.totalImpressions) * 1000 : 0 // CPM
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -140,7 +134,7 @@ export default function EngagementMetricsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${engagement.avgCpc.toFixed(2)}
+              ₹{engagement.avgCpc.toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground">
               Cost per click
@@ -171,7 +165,7 @@ export default function EngagementMetricsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${costPerImpression.toFixed(2)}
+              ₹{costPerImpression.toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground">
               Cost per 1,000 impressions
@@ -185,7 +179,7 @@ export default function EngagementMetricsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${totalSpend}
+              ₹{totalSpend}
             </div>
             <p className="text-xs text-muted-foreground">
               Across all campaigns
@@ -194,32 +188,113 @@ export default function EngagementMetricsPage() {
         </Card>
       </div>
 
-      {/* Charts Grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* CTR Performance Line Chart - spans 2 columns */}
-        <div className="lg:col-span-2">
-          <CTRPerformanceLine 
-            loading={analytics.loading}
-          />
+      {/* Top Performing Campaigns by Engagement */}
+      {analytics.campaigns && analytics.campaigns.length > 0 && (
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Campaign Engagement Performance</h2>
+          <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            {analytics.campaigns
+              .filter(campaign => campaign.clicks || campaign.impressions)
+              .sort((a, b) => {
+                const aCtr = a.impressions > 0 ? (a.clicks / a.impressions) * 100 : 0
+                const bCtr = b.impressions > 0 ? (b.clicks / b.impressions) * 100 : 0
+                return bCtr - aCtr
+              })
+              .slice(0, 6)
+              .map((campaign, index) => {
+                const ctr = campaign.impressions > 0 ? (campaign.clicks / campaign.impressions) * 100 : 0
+                const cpc = campaign.clicks > 0 ? campaign.spend / campaign.clicks : 0
+                return (
+                  <Card key={campaign.id}>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base font-medium">
+                        <div className="truncate" title={campaign.name}>
+                          {campaign.name}
+                        </div>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">CTR</span>
+                          <span className="font-semibold">{ctr.toFixed(2)}%</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Clicks</span>
+                          <span className="font-semibold">{campaign.clicks?.toLocaleString() || 'N/A'}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Impressions</span>
+                          <span className="font-semibold">{campaign.impressions?.toLocaleString() || 'N/A'}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">CPC</span>
+                          <span className="font-semibold">₹{cpc.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Spend</span>
+                          <span className="font-semibold">₹{Math.round(campaign.spend).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+          </div>
         </div>
+      )}
 
-        {/* Engagement Volume Area Chart */}
-        <EngagementVolumeArea 
-          loading={analytics.loading}
-        />
-
-        {/* Engagement Radar Chart */}
-        <EngagementRadar 
-          loading={analytics.loading}
-        />
-
-        {/* Campaign Engagement Comparison - spans 2 columns */}
-        <div className="lg:col-span-2">
-          <CampaignEngagementComparison 
-            loading={analytics.loading}
-          />
+      {/* Engagement Summary by Objective */}
+      {analytics.campaignTypes && analytics.campaignTypes.length > 0 && (
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Engagement by Campaign Objective</h2>
+          <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+            {analytics.campaignTypes
+              .sort((a, b) => b.totalSpend - a.totalSpend)
+              .map((objective, index) => {
+                const objCampaigns = analytics.campaigns.filter(c => c.objective === objective.objective)
+                const totalClicks = objCampaigns.reduce((sum, c) => sum + (c.clicks || 0), 0)
+                const totalImpressions = objCampaigns.reduce((sum, c) => sum + (c.impressions || 0), 0)
+                const objCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0
+                const objCpc = totalClicks > 0 ? objective.totalSpend / totalClicks : 0
+                
+                return (
+                  <Card key={objective.objective}>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base font-medium flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: `hsl(var(--chart-${(index % 5) + 1}))` }}
+                        />
+                        {objective.objective.replace(/_/g, ' ')}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">CTR</span>
+                          <span className="font-semibold">{objCtr.toFixed(2)}%</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Clicks</span>
+                          <span className="font-semibold">{totalClicks.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Impressions</span>
+                          <span className="font-semibold">{totalImpressions.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">CPC</span>
+                          <span className="font-semibold">₹{objCpc.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Engagement Insights */}
       {!analytics.loading && (
@@ -254,8 +329,8 @@ export default function EngagementMetricsPage() {
                 <p className="text-sm text-muted-foreground mt-1">
                   {engagement.avgCpc > 0 ? (
                     <>
-                      Your average cost per click is <strong>${engagement.avgCpc.toFixed(2)}</strong>, 
-                      with a cost per thousand impressions (CPM) of <strong>${costPerImpression.toFixed(2)}</strong>.
+                      Your average cost per click is <strong>₹{engagement.avgCpc.toFixed(2)}</strong>, 
+                      with a cost per thousand impressions (CPM) of <strong>₹{costPerImpression.toFixed(2)}</strong>.
                     </>
                   ) : (
                     <>

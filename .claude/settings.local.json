@@ -17,7 +17,11 @@
       "Bash(pkill:*)",
       "Bash(grep:*)",
       "Bash(cat:*)",
-      "Bash(kill:*)"
+      "Bash(kill:*)",
+      "mcp__playwright__browser_navigate"
+    ],
+    "additionalDirectories": [
+      "/mnt/c/Users/user/Desktop"
     ]
   },
   "enableAllProjectMcpServers": true,

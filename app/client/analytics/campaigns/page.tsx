@@ -7,12 +7,6 @@
 'use client'
 
 import { useAnalytics } from '@/hooks/useAnalytics'
-import { 
-  CampaignPerformanceBar,
-  CampaignObjectivesLine,
-  CampaignSpendArea,
-  CampaignTimeline
-} from '@/components/analytics/campaign-charts'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -72,7 +66,7 @@ export default function CampaignPerformancePage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -119,7 +113,7 @@ export default function CampaignPerformancePage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${analytics.overview?.totalSpend ? Math.round(analytics.overview.totalSpend).toLocaleString() : '0'}
+              ₹{analytics.overview?.totalSpend ? Math.round(analytics.overview.totalSpend).toLocaleString() : '0'}
             </div>
             <p className="text-xs text-muted-foreground">
               Across all campaigns
@@ -133,7 +127,7 @@ export default function CampaignPerformancePage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${analytics.campaigns.length > 0 && analytics.overview?.totalSpend ? 
+              ₹{analytics.campaigns.length > 0 && analytics.overview?.totalSpend ? 
                 Math.round(analytics.overview.totalSpend / analytics.campaigns.length).toLocaleString() : 
                 '0'
               }
@@ -157,35 +151,33 @@ export default function CampaignPerformancePage() {
         </Card>
       </div>
 
-      {/* Charts Grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Campaign Performance Bar Chart - spans 2 columns */}
-        <div className="lg:col-span-2">
-          <CampaignPerformanceBar 
-            data={analytics.campaignSpendChart}
-            loading={analytics.loading}
-          />
-        </div>
-
-        {/* Campaign Objectives Line Chart */}
-        <CampaignObjectivesLine 
-          data={analytics.campaignTypes}
-          loading={analytics.loading}
-        />
-
-        {/* Cumulative Spend Area Chart */}
-        <CampaignSpendArea 
-          data={[]}
-          loading={analytics.loading}
-        />
-
-        {/* Campaign Timeline - spans 2 columns */}
-        <div className="lg:col-span-2">
-          <CampaignTimeline 
-            campaigns={analytics.campaigns}
-            loading={analytics.loading}
-          />
-        </div>
+      {/* Campaign Objectives Summary Cards */}
+      <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        {analytics.campaignTypes.map((objective, index) => (
+          <Card key={objective.objective}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-medium">
+                {objective.objective.replace(/_/g, ' ')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Total Spend</span>
+                  <span className="font-semibold">₹{Math.round(objective.totalSpend).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Campaigns</span>
+                  <span className="font-semibold">{objective.count}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Avg Spend</span>
+                  <span className="font-semibold">₹{Math.round(objective.avgSpend).toLocaleString()}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Detailed Campaign Table */}
@@ -256,7 +248,7 @@ export default function CampaignPerformancePage() {
                       </div>
                     </TableCell>
                     <TableCell className="font-mono">
-                      ${campaign.spend > 0 ? Math.round(campaign.spend).toLocaleString() : '0'}
+                      ₹{campaign.spend > 0 ? Math.round(campaign.spend).toLocaleString() : '0'}
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">

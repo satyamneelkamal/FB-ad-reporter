@@ -7,12 +7,6 @@
 'use client'
 
 import { useAnalytics } from '@/hooks/useAnalytics'
-import { 
-  ObjectiveDistributionPie,
-  ObjectivePerformanceRadial,
-  ObjectiveComparisonBar,
-  ObjectiveSummary
-} from '@/components/analytics/campaign-types-charts'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -55,7 +49,7 @@ export default function CampaignTypesPage() {
     [...analytics.campaignTypes].sort((a, b) => b.totalSpend - a.totalSpend)[0] : null
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -104,7 +98,7 @@ export default function CampaignTypesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${totalSpendAcrossObjectives > 0 ? Math.round(totalSpendAcrossObjectives).toLocaleString() : '0'}
+              ₹{totalSpendAcrossObjectives > 0 ? Math.round(totalSpendAcrossObjectives).toLocaleString() : '0'}
             </div>
             <p className="text-xs text-muted-foreground">
               Across all objectives
@@ -134,7 +128,7 @@ export default function CampaignTypesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${highestSpendingObjective?.totalSpend > 0 ? Math.round(highestSpendingObjective.totalSpend).toLocaleString() : '0'}
+              ₹{highestSpendingObjective?.totalSpend > 0 ? Math.round(highestSpendingObjective.totalSpend).toLocaleString() : '0'}
             </div>
             <p className="text-xs text-muted-foreground">
               {highestSpendingObjective?.objective.replace(/_/g, ' ') || 'N/A'}
@@ -143,35 +137,59 @@ export default function CampaignTypesPage() {
         </Card>
       </div>
 
-      {/* Top Objectives Summary */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Top Performing Objectives</h2>
-        <ObjectiveSummary 
-          data={analytics.campaignTypes}
-          loading={analytics.loading}
-        />
+      {/* Top Objectives Summary Cards */}
+      <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        {analytics.campaignTypes
+          .sort((a, b) => b.totalSpend - a.totalSpend)
+          .slice(0, 6)
+          .map((objective, index) => (
+            <Card key={objective.objective} className="relative">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-medium flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full" 
+                    style={{ backgroundColor: `hsl(var(--chart-${(index % 5) + 1}))` }}
+                  />
+                  {objective.objective.replace(/_/g, ' ')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Total Spend</span>
+                    <span className="font-semibold">₹{Math.round(objective.totalSpend).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Campaigns</span>
+                    <span className="font-semibold">{objective.count}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Avg Spend</span>
+                    <span className="font-semibold">₹{Math.round(objective.avgSpend).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Share</span>
+                    <span className="font-semibold">
+                      {totalSpendAcrossObjectives > 0 ? 
+                        ((objective.totalSpend / totalSpendAcrossObjectives) * 100).toFixed(1) : 0}%
+                    </span>
+                  </div>
+                  <div className="pt-1">
+                    <Badge 
+                      variant={
+                        objective.status === 'Active' ? 'default' : 
+                        objective.status === 'Mixed' ? 'secondary' : 'outline'
+                      }
+                      className="text-xs"
+                    >
+                      {objective.status}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
       </div>
-
-      {/* Charts Grid */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Objective Distribution Pie Chart */}
-        <ObjectiveDistributionPie 
-          data={analytics.campaignTypes}
-          loading={analytics.loading}
-        />
-
-        {/* Objective Performance Radial Chart */}
-        <ObjectivePerformanceRadial 
-          data={analytics.campaignTypes}
-          loading={analytics.loading}
-        />
-      </div>
-
-      {/* Objective Comparison Bar Chart - Full Width */}
-      <ObjectiveComparisonBar 
-        data={analytics.campaignTypes}
-        loading={analytics.loading}
-      />
 
       {/* Detailed Objectives Table */}
       <Card>
@@ -224,13 +242,13 @@ export default function CampaignTypesPage() {
                           </div>
                         </TableCell>
                         <TableCell className="text-right font-mono">
-                          ${objective.totalSpend > 0 ? Math.round(objective.totalSpend).toLocaleString() : '0'}
+                          ₹{objective.totalSpend > 0 ? Math.round(objective.totalSpend).toLocaleString() : '0'}
                         </TableCell>
                         <TableCell className="text-right">
                           {objective.count}
                         </TableCell>
                         <TableCell className="text-right font-mono">
-                          ${objective.avgSpend > 0 ? Math.round(objective.avgSpend).toLocaleString() : '0'}
+                          ₹{objective.avgSpend > 0 ? Math.round(objective.avgSpend).toLocaleString() : '0'}
                         </TableCell>
                         <TableCell className="text-right">
                           {sharePercentage.toFixed(1)}%
@@ -277,7 +295,7 @@ export default function CampaignTypesPage() {
                   {highestSpendingObjective && (
                     <>
                       <strong>{highestSpendingObjective.objective.replace(/_/g, ' ')}</strong> campaigns 
-                      account for the highest spend (${Math.round(highestSpendingObjective.totalSpend).toLocaleString()}), representing{' '}
+                      account for the highest spend (₹{Math.round(highestSpendingObjective.totalSpend).toLocaleString()}), representing{' '}
                       {((highestSpendingObjective.totalSpend / totalSpendAcrossObjectives) * 100).toFixed(1)}% 
                       of your total budget.
                     </>
