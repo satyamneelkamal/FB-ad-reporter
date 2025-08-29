@@ -9,6 +9,7 @@ import { supabaseAdmin, db, type Client, type MonthlyReport } from './supabase'
 import { collectAllFacebookData, getDateRange } from './facebook-api'
 import { validateFacebookData, transformFacebookData, generateDataQualityReport, type ValidatedFacebookData } from './data-validation'
 import { FacebookAnalytics } from './analytics'
+import { processReportToCache, saveAnalyticsCache } from './analytics-cache'
 
 export interface DataStorageResult {
   success: boolean
@@ -100,8 +101,21 @@ export async function collectAndStoreClientData(
     - Quality score: ${qualityReport.overall_score}/100
     - Storage time: ${storageTime}ms`)
 
-    // Analytics will be processed on-demand when requested by the client
-    // No need for caching since Supabase already stores the data efficiently
+    // Step 6: Process and cache analytics for fast dashboard queries
+    console.log('🔄 Processing analytics cache...')
+    try {
+      const analyticsData = await processReportToCache(client.id, report)
+      const cacheResult = await saveAnalyticsCache(client.id, analyticsData)
+      
+      if (cacheResult.success) {
+        console.log('✅ Analytics cache updated successfully')
+      } else {
+        console.warn('⚠️  Analytics cache update failed:', cacheResult.error)
+      }
+    } catch (cacheError) {
+      console.warn('⚠️  Analytics cache processing failed:', cacheError)
+      // Don't fail the entire operation if cache processing fails
+    }
 
     return {
       success: true,

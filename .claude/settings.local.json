@@ -18,7 +18,10 @@
       "Bash(grep:*)",
       "Bash(cat:*)",
       "Bash(kill:*)",
-      "mcp__playwright__browser_navigate"
+      "mcp__playwright__browser_navigate",
+      "mcp__filesystem__write_file",
+      "Bash(cd:*)",
+      "Bash(cd:*)"
     ],
     "additionalDirectories": [
       "/mnt/c/Users/user/Desktop"

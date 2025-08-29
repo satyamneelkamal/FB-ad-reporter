@@ -207,7 +207,18 @@ export function useAnalytics() {
         throw new Error(errorData.error || `HTTP ${response.status}`)
       }
 
-      const rawData = await response.json()
+      const apiResponse = await response.json()
+      
+      if (!apiResponse.success) {
+        throw new Error(apiResponse.error || 'API request failed')
+      }
+
+      // Extract analytics data from the API response
+      const rawData = apiResponse.analytics
+      if (!rawData) {
+        throw new Error('No analytics data received from API')
+      }
+
       const processedData = processAnalyticsData(rawData)
       
       setData(processedData)

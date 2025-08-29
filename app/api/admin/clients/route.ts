@@ -128,18 +128,61 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// PUT /api/admin/clients?id={id} - Update client (for fixing user_id)
 export async function PUT(request: NextRequest) {
   try {
-    // Verify admin authentication
-    const admin = await getAdminFromRequest(request)
-    if (!admin) {
-      return NextResponse.json(
-        { error: 'Admin authentication required' },
-        { status: 401 }
-      )
+    const adminResult = await getAdminFromRequest(request)
+    if (!adminResult.success) {
+      return NextResponse.json({
+        success: false,
+        error: adminResult.error
+      }, { status: 401 })
     }
 
-    const { id, name, fb_ad_account_id, slug, status } = await request.json()
+    const { searchParams } = new URL(request.url)
+    const clientId = searchParams.get('id')
+    const body = await request.json()
+
+    if (!clientId) {
+      return NextResponse.json({
+        success: false,
+        error: 'Client ID is required'
+      }, { status: 400 })
+    }
+
+    console.log(`🔧 Admin updating client ${clientId}:`, body)
+
+    // Update client record directly with Supabase admin
+    const { data: client, error } = await supabaseAdmin
+      .from('clients')
+      .update(body)
+      .eq('id', parseInt(clientId))
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error updating client:', error)
+      return NextResponse.json({
+        success: false,
+        error: error.message
+      }, { status: 500 })
+    }
+
+    console.log('✅ Client updated successfully:', client)
+
+    return NextResponse.json({
+      success: true,
+      client
+    })
+
+  } catch (error) {
+    console.error('Admin client update error:', error)
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to update client'
+    }, { status: 500 })
+  }
+}
 
     if (!id) {
       return NextResponse.json({

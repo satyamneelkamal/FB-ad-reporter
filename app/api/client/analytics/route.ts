@@ -1,160 +1,128 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getClientIdFromToken } from '@/lib/auth'
-import { supabase } from '@/lib/supabase'
-import { FacebookAnalytics } from '@/lib/analytics'
+import { getAnalyticsCache, refreshAnalyticsCache } from '@/lib/analytics-cache'
+import { getClientFromRequest } from '@/lib/auth'
 
 /**
  * Client Analytics API
+ * Provides fast access to processed analytics data from cache
  * 
- * Provides comprehensive Facebook Ads analytics for authenticated clients
- * Processes data into 8 major sections matching stats.md format:
- * - Overview, Campaigns, Demographics, Regional, Engagement, 
- *   Campaign Types, Devices & Platforms, Ad Level
+ * GET /api/client/analytics - Get analytics for authenticated client
+ * POST /api/client/analytics - Refresh analytics cache for authenticated client
  */
 
 export async function GET(request: NextRequest) {
   try {
-    // Extract client ID from JWT token
-    const clientId = await getClientIdFromToken(request)
+    console.log('📊 Client analytics API called')
     
-    // Get the most recent report for this client
-    const { data: reports, error: reportError } = await supabase
-      .from('monthly_reports')
-      .select('report_data, month_year, scraped_at')
-      .eq('client_id', clientId)
-      .order('scraped_at', { ascending: false })
-      .limit(1)
+    // Get authenticated client from JWT token
+    const authResult = await getClientFromRequest(request)
+    console.log('🔐 Auth result:', authResult)
+    if (!authResult.success) {
+      return NextResponse.json({
+        success: false,
+        error: authResult.error || 'Authentication required'
+      }, { status: 401 })
+    }
+
+    const client = authResult.client!
+
+    // Get analytics from cache
+    const cacheResult = await getAnalyticsCache(client.id)
+    
+    if (!cacheResult.success) {
+      // If no cache exists, try to refresh it from raw data
+      console.log(`No analytics cache found for ${client.slug}, attempting to refresh...`)
       
-    if (reportError) {
-      console.error('Database error:', reportError)
-      return NextResponse.json(
-        { error: 'Failed to fetch report data' },
-        { status: 500 }
-      )
-    }
-    
-    if (!reports || reports.length === 0) {
-      return NextResponse.json(
-        { 
-          error: 'No report data found',
-          message: 'No Facebook Ads data has been collected for this client yet'
-        },
-        { status: 404 }
-      )
-    }
-    
-    const latestReport = reports[0]
-    const reportData = latestReport.report_data
-    
-    if (!reportData) {
-      return NextResponse.json(
-        { 
-          error: 'Invalid report data',
-          message: 'Report data is missing or corrupted'
-        },
-        { status: 400 }
-      )
-    }
-    
-    // Generate comprehensive analytics using the FacebookAnalytics class
-    const analytics = FacebookAnalytics.generateFullAnalytics(reportData)
-    
-    // Add metadata about the report
-    const response = {
-      ...analytics,
-      metadata: {
-        clientId,
-        monthYear: latestReport.month_year,
-        scrapedAt: latestReport.scraped_at,
-        generatedAt: new Date().toISOString(),
-        dataQuality: {
-          totalDataTypes: Object.keys(reportData).length,
-          availableDataTypes: Object.keys(analytics.dataAvailability).filter(
-            key => analytics.dataAvailability[key as keyof typeof analytics.dataAvailability]
-          )
-        }
+      const refreshResult = await refreshAnalyticsCache(client.id)
+      if (!refreshResult.success) {
+        return NextResponse.json({
+          success: false,
+          error: `No analytics data available for ${client.name}. Please ensure data has been collected.`
+        }, { status: 404 })
       }
+
+      // Try to get cache again after refresh
+      const retryResult = await getAnalyticsCache(client.id)
+      if (!retryResult.success) {
+        return NextResponse.json({
+          success: false,
+          error: 'Failed to generate analytics cache'
+        }, { status: 500 })
+      }
+
+      return NextResponse.json({
+        success: true,
+        client: {
+          id: client.id,
+          name: client.name,
+          slug: client.slug
+        },
+        analytics: retryResult.data,
+        cache_refreshed: true
+      })
     }
-    
-    return NextResponse.json(response)
-    
+
+    return NextResponse.json({
+      success: true,
+      client: {
+        id: client.id,
+        name: client.name,
+        slug: client.slug
+      },
+      analytics: cacheResult.data
+    })
+
   } catch (error) {
-    console.error('Analytics API error:', error)
-    
-    // Handle specific authentication errors
-    if (error instanceof Error) {
-      if (error.message.includes('authentication') || error.message.includes('token')) {
-        return NextResponse.json(
-          { error: 'Authentication required' },
-          { status: 401 }
-        )
-      }
-      
-      if (error.message.includes('Client not found')) {
-        return NextResponse.json(
-          { error: 'Client not found' },
-          { status: 404 }
-        )
-      }
-    }
-    
-    return NextResponse.json(
-      { error: 'Failed to generate analytics' },
-      { status: 500 }
-    )
+    console.error('Client analytics API error:', error)
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to retrieve analytics data'
+    }, { status: 500 })
   }
 }
 
-/**
- * Get analytics for a specific month/year
- */
 export async function POST(request: NextRequest) {
   try {
-    const clientId = await getClientIdFromToken(request)
-    const { monthYear } = await request.json()
-    
-    if (!monthYear) {
-      return NextResponse.json(
-        { error: 'monthYear parameter is required' },
-        { status: 400 }
-      )
+    // Get authenticated client from JWT token
+    const authResult = await getClientFromRequest(request)
+    if (!authResult.success) {
+      return NextResponse.json({
+        success: false,
+        error: authResult.error || 'Authentication required'
+      }, { status: 401 })
     }
+
+    const client = authResult.client!
+
+    // Refresh analytics cache
+    const refreshResult = await refreshAnalyticsCache(client.id)
     
-    // Get specific month's report
-    const { data: reports, error } = await supabase
-      .from('monthly_reports')
-      .select('report_data, month_year, scraped_at')
-      .eq('client_id', clientId)
-      .eq('month_year', monthYear)
-      .single()
-      
-    if (error || !reports) {
-      return NextResponse.json(
-        { error: `No data found for ${monthYear}` },
-        { status: 404 }
-      )
+    if (!refreshResult.success) {
+      return NextResponse.json({
+        success: false,
+        error: refreshResult.error
+      }, { status: 500 })
     }
+
+    // Get the updated analytics
+    const cacheResult = await getAnalyticsCache(client.id)
     
-    // Generate analytics for the specific month
-    const analytics = FacebookAnalytics.generateFullAnalytics(reports.report_data)
-    
-    const response = {
-      ...analytics,
-      metadata: {
-        clientId,
-        monthYear: reports.month_year,
-        scrapedAt: reports.scraped_at,
-        generatedAt: new Date().toISOString()
-      }
-    }
-    
-    return NextResponse.json(response)
-    
+    return NextResponse.json({
+      success: true,
+      client: {
+        id: client.id,
+        name: client.name,
+        slug: client.slug
+      },
+      analytics: cacheResult.success ? cacheResult.data : null,
+      cache_refreshed: true
+    })
+
   } catch (error) {
-    console.error('Monthly analytics error:', error)
-    return NextResponse.json(
-      { error: 'Failed to generate monthly analytics' },
-      { status: 500 }
-    )
+    console.error('Client analytics refresh API error:', error)
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to refresh analytics data'
+    }, { status: 500 })
   }
 }

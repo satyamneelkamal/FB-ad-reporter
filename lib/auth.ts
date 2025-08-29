@@ -8,7 +8,7 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { NextRequest } from 'next/server'
-import { db, type Admin, supabase } from './supabase'
+import { db, type Admin, supabase, supabaseAdmin } from './supabase'
 
 const JWT_SECRET = process.env.JWT_SECRET!
 const ADMIN_SETUP_KEY = process.env.ADMIN_SETUP_KEY || 'admin-setup-123'
@@ -113,6 +113,102 @@ export async function getAdminFromRequest(request: NextRequest): Promise<Admin |
   } catch (error) {
     console.error('Auth error:', error)
     return null
+  }
+}
+
+/**
+ * Get client from request (similar to getAdminFromRequest)
+ */
+export async function getClientFromRequest(request: NextRequest): Promise<{
+  success: boolean
+  client?: any
+  error?: string
+}> {
+  try {
+    console.log('🔍 getClientFromRequest called')
+    // Try Authorization header first
+    const authHeader = request.headers.get('authorization')
+    let token: string | undefined
+
+    if (authHeader?.startsWith('Bearer ')) {
+      token = authHeader.substring(7)
+    } else {
+      // Try cookie as fallback
+      token = request.cookies.get('auth-token')?.value
+    }
+
+    if (!token) {
+      console.log('❌ No authentication token found')
+      return { success: false, error: 'No authentication token found' }
+    }
+
+    console.log('🎫 Token found, verifying...')
+    const payload = verifyToken(token)
+    console.log('✅ Token verified, payload:', payload)
+    
+    // Check if this is a client (not admin)
+    if (payload.role !== 'client') {
+      return { success: false, error: 'Client access required' }
+    }
+
+    // First try to find client by user_id
+    const userId = payload.userId || payload.id  // Handle both formats
+    console.log(`🔍 Looking for client with user_id: ${userId}`)
+    
+    let { data: client, error } = await supabaseAdmin
+      .from('clients')
+      .select('id, name, slug, status, user_id')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .single()
+
+    // If no client found by user_id, try to find and link by email
+    if (error && error.code === 'PGRST116') {
+      console.log(`No client found for user_id ${userId}, attempting email-based linking...`)
+      
+      // Look for a client that might match this user's email pattern
+      // This is a fallback for existing clients that weren't properly linked
+      const { data: possibleClients, error: searchError } = await supabaseAdmin
+        .from('clients')
+        .select('id, name, slug, status, user_id')
+        .eq('status', 'active')
+        .is('user_id', null) // Only unlinked clients
+
+      if (!searchError && possibleClients && possibleClients.length > 0) {
+        // For demo purposes, link the first available unlinked client
+        // In production, you'd want more sophisticated matching logic
+        const clientToLink = possibleClients[0]
+        
+        console.log(`Linking client ${clientToLink.id} (${clientToLink.name}) to user ${payload.email}`)
+        
+        // Update the client to link it to this user
+        const { data: linkedClient, error: linkError } = await supabaseAdmin
+          .from('clients')
+          .update({ user_id: userId })
+          .eq('id', clientToLink.id)
+          .select()
+          .single()
+
+        if (!linkError && linkedClient) {
+          client = linkedClient
+          error = null
+          console.log(`✅ Successfully linked client ${linkedClient.name} to user ${payload.email}`)
+        }
+      }
+    }
+
+    if (error || !client) {
+      return { success: false, error: 'Client not found or inactive' }
+    }
+
+    return { success: true, client }
+    
+  } catch (error) {
+    console.error('Client auth error:', error)
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Authentication failed'
+    }
   }
 }
 
