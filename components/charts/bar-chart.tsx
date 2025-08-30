@@ -18,37 +18,69 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"
 
-export const description = "A bar chart with a custom label"
-
-const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
-]
+export const description = "A bar chart showing regional performance"
 
 const chartConfig = {
-  desktop: {
-    label: "Desktop",
+  spend: {
+    label: "Spend ($)",
+    color: "var(--chart-1)",
+  },
+  clicks: {
+    label: "Clicks",
     color: "var(--chart-2)",
   },
-  mobile: {
-    label: "Mobile",
-    color: "var(--chart-2)",
+  impressions: {
+    label: "Impressions (K)",
+    color: "var(--chart-3)",
   },
   label: {
     color: "var(--background)",
   },
 } satisfies ChartConfig
 
-export function ChartBarLabelCustom() {
+interface RegionalChartProps {
+  data?: Array<{
+    region: string
+    spend: number
+    clicks: number
+    ctr?: number
+    cpc?: number
+    reach?: number
+    cpm?: number
+    percentage?: number
+  }>
+  title?: string
+  description?: string
+}
+
+export function ChartBarLabelCustom({ 
+  data,
+  title = "Regional Performance", 
+  description = "Ad performance across geographic regions" 
+}: RegionalChartProps = {}) {
+  // Debug: Log the data being passed
+  console.log("🔍 Regional Chart Data:", data)
+  console.log("📊 Data length:", data?.length)
+  console.log("✅ Has valid data:", data && data.length > 0)
+  
+  // Use provided data or fallback to sample data
+  const chartData = data && data.length > 0 
+    ? data.sort((a, b) => b.clicks - a.clicks).slice(0, 5) // Top 5 regions by clicks
+    : [
+        { region: "Sample: India", spend: 8500, clicks: 3450 },
+        { region: "Sample: United States", spend: 12000, clicks: 3200 },
+        { region: "Sample: Brazil", spend: 9800, clicks: 2980 },
+        { region: "Sample: Indonesia", spend: 7200, clicks: 2650 },
+        { region: "Sample: Germany", spend: 10500, clicks: 2400 },
+      ]
+
+  console.log("📈 Final chart data:", chartData)
+  const topRegion = chartData[0]?.region || "No Data"
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Bar Chart - Custom Label</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
@@ -62,34 +94,33 @@ export function ChartBarLabelCustom() {
           >
             <CartesianGrid horizontal={false} />
             <YAxis
-              dataKey="month"
+              dataKey="region"
               type="category"
               tickLine={false}
               tickMargin={10}
               axisLine={false}
-              tickFormatter={(value) => value.slice(0, 3)}
               hide
             />
-            <XAxis dataKey="desktop" type="number" hide />
+            <XAxis dataKey="clicks" type="number" hide />
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent indicator="line" />}
             />
             <Bar
-              dataKey="desktop"
+              dataKey="clicks"
               layout="vertical"
-              fill="var(--color-desktop)"
+              fill="var(--color-clicks)"
               radius={4}
             >
               <LabelList
-                dataKey="month"
+                dataKey="region"
                 position="insideLeft"
                 offset={8}
                 className="fill-(--color-label)"
                 fontSize={12}
               />
               <LabelList
-                dataKey="desktop"
+                dataKey="clicks"
                 position="right"
                 offset={8}
                 className="fill-foreground"
@@ -99,12 +130,12 @@ export function ChartBarLabelCustom() {
           </BarChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 text-sm">
+      <CardFooter className="flex-col items-center gap-2 text-sm">
         <div className="flex gap-2 leading-none font-medium">
-          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
+          {topRegion} leads with highest clicks <TrendingUp className="h-4 w-4" />
         </div>
         <div className="text-muted-foreground leading-none">
-          Showing total visitors for the last 6 months
+          Showing click performance across all regions
         </div>
       </CardFooter>
     </Card>

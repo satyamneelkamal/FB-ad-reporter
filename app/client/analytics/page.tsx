@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import { RefreshCw, AlertCircle, TrendingUp, Users, Target, DollarSign } from "lucide-react"
 import { ChartAreaInteractive } from "@/components/charts/area-chart" 
 import { ChartPieSeparatorNone } from "@/components/charts/pie-chart"
-import { ChartBarMultiple } from "@/components/charts/bar-chart"
+import { ChartBarLabelCustom } from "@/components/charts/bar-chart"
 import { 
   transformEngagementToLineChart, 
   transformObjectivesToPieChart, 
@@ -160,11 +160,10 @@ export default function AnalyticsDashboard() {
           />
 
           {/* Top Campaigns Bar Chart */}
-          <ChartBarMultiple 
-            data={transformCampaignsToBarChart(analytics.campaigns)}
-            config={createCampaignChartConfig()}
-            title="Campaign Performance"
-            description="Top campaigns spend and performance trends"
+          <ChartBarLabelCustom 
+            data={analytics.regional?.regions || []}
+            title="Top Regional Performance"
+            description="Regions with highest click engagement"
           />
         </div>
       )}
