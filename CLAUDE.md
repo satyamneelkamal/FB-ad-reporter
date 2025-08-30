@@ -349,3 +349,4 @@ Use provided credentials to test both user types:
 ---
 
 *Modern Next.js Facebook Ads Reporting Dashboard with unified authentication and professional client interfaces.*
+- how to addd new charts from shadcn, the file tree and whatever else is imprtnat

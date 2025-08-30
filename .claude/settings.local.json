@@ -21,7 +21,8 @@
       "mcp__playwright__browser_navigate",
       "mcp__filesystem__write_file",
       "Bash(cd:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(npx shadcn@latest add:*)"
     ],
     "additionalDirectories": [
       "/mnt/c/Users/user/Desktop"

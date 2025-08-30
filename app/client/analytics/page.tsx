@@ -10,7 +10,17 @@ import { useAnalytics } from '@/hooks/useAnalytics'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { RefreshCw, AlertCircle, TrendingUp, Users, Target, DollarSign } from "lucide-react"
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, BarChart, Bar, Legend } from 'recharts'
+import { ChartAreaInteractive } from "@/components/charts/area-chart" 
+import { ChartPieSeparatorNone } from "@/components/charts/pie-chart"
+import { ChartBarMultiple } from "@/components/charts/bar-chart"
+import { 
+  transformEngagementToLineChart, 
+  transformObjectivesToPieChart, 
+  transformCampaignsToBarChart,
+  createEngagementChartConfig,
+  createObjectiveChartConfig,
+  createCampaignChartConfig
+} from '@/lib/chart-transforms'
 
 export default function AnalyticsDashboard() {
   const analytics = useAnalytics()
@@ -132,112 +142,30 @@ export default function AnalyticsDashboard() {
       {!analytics.loading && (
         <div className="grid gap-4 md:grid-cols-2">
           {/* Performance Trend Chart */}
-          <Card className="col-span-full md:col-span-2">
-            <CardHeader>
-              <CardTitle>Performance Trends</CardTitle>
-              <CardDescription>
-                Key metrics comparison across engagement data
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={analytics.engagementTrendChart}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip 
-                      formatter={(value, name) => [
-                        name === 'CTR %' ? `${value}%` : value?.toLocaleString() || 0,
-                        name
-                      ]}
-                    />
-                    <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="value" 
-                      stroke="var(--primary)" 
-                      strokeWidth={2}
-                      dot={{ fill: "var(--primary)", strokeWidth: 2, r: 4 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="col-span-full md:col-span-2">
+            <ChartAreaInteractive 
+              data={transformEngagementToLineChart(analytics.engagement)}
+              config={createEngagementChartConfig()}
+              title="Engagement Performance"
+              description="Facebook Ads clicks and impressions trends"
+            />
+          </div>
 
           {/* Campaign Objectives Pie Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Campaign Objectives</CardTitle>
-              <CardDescription>
-                Spend distribution by objective type
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={analytics.objectiveDistributionChart}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {analytics.objectiveDistributionChart.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      formatter={(value) => [`₹${Math.round(value).toLocaleString()}`, 'Spend']}
-                    />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+          <ChartPieSeparatorNone 
+            data={transformObjectivesToPieChart(analytics.campaignTypes)}
+            config={createObjectiveChartConfig(analytics.campaignTypes)}
+            title="Campaign Objectives"
+            description="Spend distribution by objective type"
+          />
 
           {/* Top Campaigns Bar Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Top Campaigns</CardTitle>
-              <CardDescription>
-                Highest spending campaigns comparison
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart 
-                    data={analytics.campaignSpendChart.slice(0, 5)} 
-                    layout="horizontal"
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis 
-                      type="category" 
-                      dataKey="name" 
-                      width={120}
-                      tick={{ fontSize: 12 }}
-                    />
-                    <Tooltip 
-                      formatter={(value) => [`₹${Math.round(value).toLocaleString()}`, 'Spend']}
-                    />
-                    <Bar 
-                      dataKey="spend" 
-                      fill="var(--primary)"
-                      radius={[0, 4, 4, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+          <ChartBarMultiple 
+            data={transformCampaignsToBarChart(analytics.campaigns)}
+            config={createCampaignChartConfig()}
+            title="Campaign Performance"
+            description="Top campaigns spend and performance trends"
+          />
         </div>
       )}
 
