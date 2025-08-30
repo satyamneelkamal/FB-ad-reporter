@@ -85,7 +85,20 @@ export function ChartPieSeparatorNone({
           <PieChart>
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent hideLabel />}
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  const data = payload[0];
+                  return (
+                    <div className="rounded-lg border bg-background p-2 shadow-sm">
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-sm">{data.name}</span>
+                        <span className="text-sm font-medium">₹{data.value}</span>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              }}
             />
             <Pie
               data={data}

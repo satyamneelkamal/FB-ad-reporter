@@ -104,7 +104,20 @@ export function ChartBarLabelCustom({
             <XAxis dataKey="clicks" type="number" hide />
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent indicator="line" />}
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  const data = payload[0];
+                  return (
+                    <div className="rounded-lg border bg-background p-2 shadow-sm">
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-sm">{data.payload.region}</span>
+                        <span className="text-sm font-medium">{data.value} clicks</span>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              }}
             />
             <Bar
               dataKey="clicks"
