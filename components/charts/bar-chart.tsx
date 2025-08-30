@@ -1,7 +1,7 @@
 "use client"
 
 import { TrendingUp } from "lucide-react"
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis } from "recharts"
 
 import {
   Card,
@@ -18,7 +18,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"
 
-export const description = "A multiple bar chart"
+export const description = "A bar chart with a custom label"
 
 const chartData = [
   { month: "January", desktop: 186, mobile: 80 },
@@ -32,56 +32,70 @@ const chartData = [
 const chartConfig = {
   desktop: {
     label: "Desktop",
-    color: "var(--chart-1)",
+    color: "var(--chart-2)",
   },
   mobile: {
     label: "Mobile",
     color: "var(--chart-2)",
   },
+  label: {
+    color: "var(--background)",
+  },
 } satisfies ChartConfig
 
-interface BarChartProps {
-  data?: Array<{
-    name: string
-    spend?: number
-    clicks?: number 
-    desktop?: number
-    mobile?: number
-  }>
-  config?: any
-  title?: string
-  description?: string
-}
-
-export function ChartBarMultiple({ 
-  data = chartData,
-  config = chartConfig,
-  title = "Bar Chart - Multiple",
-  description = "January - June 2024"
-}: BarChartProps) {
+export function ChartBarLabelCustom() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
+        <CardTitle>Bar Chart - Custom Label</CardTitle>
+        <CardDescription>January - June 2024</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={config}>
-          <BarChart accessibilityLayer data={data}>
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="name"
+        <ChartContainer config={chartConfig}>
+          <BarChart
+            accessibilityLayer
+            data={chartData}
+            layout="vertical"
+            margin={{
+              right: 16,
+            }}
+          >
+            <CartesianGrid horizontal={false} />
+            <YAxis
+              dataKey="month"
+              type="category"
               tickLine={false}
               tickMargin={10}
               axisLine={false}
-              tickFormatter={(value) => value.slice(0, 10)}
+              tickFormatter={(value) => value.slice(0, 3)}
+              hide
             />
+            <XAxis dataKey="desktop" type="number" hide />
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent indicator="dashed" />}
+              content={<ChartTooltipContent indicator="line" />}
             />
-            <Bar dataKey="spend" fill="var(--chart-1)" radius={4} />
-            <Bar dataKey="clicks" fill="var(--chart-2)" radius={4} />
+            <Bar
+              dataKey="desktop"
+              layout="vertical"
+              fill="var(--color-desktop)"
+              radius={4}
+            >
+              <LabelList
+                dataKey="month"
+                position="insideLeft"
+                offset={8}
+                className="fill-(--color-label)"
+                fontSize={12}
+              />
+              <LabelList
+                dataKey="desktop"
+                position="right"
+                offset={8}
+                className="fill-foreground"
+                fontSize={12}
+              />
+            </Bar>
           </BarChart>
         </ChartContainer>
       </CardContent>
