@@ -184,47 +184,6 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-    if (!id) {
-      return NextResponse.json({
-        success: false,
-        error: 'Client ID is required'
-      }, { status: 400 })
-    }
-
-    // Validate Facebook Ad Account ID if provided
-    if (fb_ad_account_id && !isValidFacebookAdAccountId(fb_ad_account_id)) {
-      return NextResponse.json({
-        success: false,
-        error: 'Invalid Facebook Ad Account ID format'
-      }, { status: 400 })
-    }
-
-    adminLogger.adminAction(admin.email, 'update_client', { id, name })
-
-    // Update client
-    const updates: any = {}
-    if (name) updates.name = name
-    if (fb_ad_account_id) updates.fb_ad_account_id = fb_ad_account_id
-    if (slug) updates.slug = slug
-    if (status) updates.status = status
-
-    const updatedClient = await db.updateClient(id, updates)
-
-    return NextResponse.json({
-      success: true,
-      message: 'Client updated successfully',
-      client: updatedClient
-    })
-
-  } catch (error) {
-    adminLogger.error('Failed to update client', error as Error)
-    return NextResponse.json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to update client'
-    }, { status: 500 })
-  }
-}
-
 export async function DELETE(request: NextRequest) {
   try {
     // Verify admin authentication

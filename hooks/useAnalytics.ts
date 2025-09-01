@@ -31,6 +31,7 @@ export interface AnalyticsData {
   demographics: any
   regional: any
   devicesAndPlatforms: any
+  audienceProfile: any
   adLevel: any[]
   
   // Processed chart data
@@ -57,6 +58,7 @@ export function useAnalytics() {
     demographics: null,
     regional: null,
     devicesAndPlatforms: null,
+    audienceProfile: null,
     adLevel: [],
     
     // Processed chart data
@@ -171,7 +173,7 @@ export function useAnalytics() {
             fill: `var(--chart-${(index % 5) + 1})`
           })) : []
 
-      return {
+      const processedData = {
         ...rawData,
         metricCards,
         campaignStatusChart,
@@ -183,6 +185,9 @@ export function useAnalytics() {
         error: null,
         lastUpdated: new Date().toISOString()
       }
+      
+      console.log("🚀 useAnalytics processedData.audienceProfile:", processedData.audienceProfile)
+      return processedData
     } catch (error) {
       console.error('Error processing analytics data:', error)
       throw error

@@ -105,6 +105,9 @@ export interface AnalyticsCacheData {
     }>
   }
 
+  // Audience Profile analysis
+  audienceProfile: any
+
   // Additional data for completeness
   adLevel: any[]
   hourly: any[]
@@ -159,6 +162,7 @@ export async function processReportToCache(
       engagement: analytics.engagement,
       campaignTypes: analytics.campaignTypes,
       devicesAndPlatforms: analytics.devicesAndPlatforms,
+      audienceProfile: analytics.audienceProfile, // Add the audienceProfile field
       adLevel: analytics.adLevel || [],
       hourly: analytics.hourly || [],
       dataAvailability: analytics.dataAvailability,

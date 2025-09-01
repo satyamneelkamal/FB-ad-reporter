@@ -13,6 +13,7 @@ import { RefreshCw, AlertCircle, TrendingUp, Users, Target, DollarSign } from "l
 import { ChartAreaInteractive } from "@/components/charts/area-chart" 
 import { ChartPieSeparatorNone } from "@/components/charts/pie-chart"
 import { ChartBarLabelCustom } from "@/components/charts/bar-chart"
+import { SmartAudienceProfiler } from "@/components/SmartAudienceProfiler"
 import { 
   transformEngagementToLineChart, 
   transformObjectivesToPieChart, 
@@ -168,46 +169,8 @@ export default function AnalyticsDashboard() {
         </div>
       )}
 
-      {/* Top Campaigns Summary */}
-      {analytics.campaigns && analytics.campaigns.length > 0 && (
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Top Campaigns Overview</h2>
-          <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {analytics.campaigns
-              .sort((a, b) => b.spend - a.spend)
-              .slice(0, 6)
-              .map((campaign, index) => (
-                <Card key={campaign.id}>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base font-medium">
-                      <div className="truncate" title={campaign.name}>
-                        {campaign.name}
-                      </div>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">Spend</span>
-                        <span className="font-semibold">₹{Math.round(campaign.spend).toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">Objective</span>
-                        <span className="font-semibold text-xs">{campaign.objective.replace(/_/g, ' ')}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">Status</span>
-                        <span className={`font-semibold text-xs ${campaign.status === 'Active' ? 'text-green-600' : 'text-gray-600'}`}>
-                          {campaign.status}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-          </div>
-        </div>
-      )}
+      {/* Smart Audience Profiler */}
+      <SmartAudienceProfiler audienceData={analytics.audienceProfile} />
 
       {/* Data Availability Status */}
       {!analytics.loading && (
