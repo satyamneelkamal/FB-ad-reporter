@@ -9,10 +9,64 @@
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { RefreshCw, AlertCircle, Smartphone, Monitor, Tablet, Globe } from "lucide-react"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { RefreshCw, AlertCircle, Smartphone, Monitor, Tablet, Globe, ArrowUpDown } from "lucide-react"
+import { useState } from 'react'
 
 export default function DevicesAnalysisPage() {
   const analytics = useAnalytics()
+  const [sortBy, setSortBy] = useState<'platform' | 'spend' | 'clicks' | 'impressions' | 'ctr' | 'cpc' | 'percentage'>('spend')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+
+  const handleSort = (field: 'platform' | 'spend' | 'clicks' | 'impressions' | 'ctr' | 'cpc' | 'percentage') => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortBy(field)
+      setSortOrder('desc')
+    }
+  }
+
+  // Calculate device insights from available data
+  const devicesAndPlatforms = analytics.devicesAndPlatforms || { available: false }
+  
+  // Use calculated metrics from analytics instead of hardcoded values
+  const totalDevices = devicesAndPlatforms.deviceCount || 0
+  const topDevice = devicesAndPlatforms.topDevice || null
+  const totalPlatforms = devicesAndPlatforms.platforms?.length || 0
+  const totalDeviceSpend = devicesAndPlatforms.totalDeviceSpend || 0
+  const mobileShare = devicesAndPlatforms.mobileShare || 0
+  const averageCTR = devicesAndPlatforms.averageCTR || 0
+
+  const getSortedPlatforms = () => {
+    if (!devicesAndPlatforms.platforms) return []
+    
+    return [...devicesAndPlatforms.platforms].sort((a, b) => {
+      const aVal = sortBy === 'platform' ? a.platform : 
+                  sortBy === 'spend' ? a.spend :
+                  sortBy === 'clicks' ? (a.clicks || 0) :
+                  sortBy === 'impressions' ? (a.impressions || 0) :
+                  sortBy === 'ctr' ? (a.ctr || 0) :
+                  sortBy === 'cpc' ? (a.cpc || 0) :
+                  (a.percentage || 0)
+      
+      const bVal = sortBy === 'platform' ? b.platform : 
+                  sortBy === 'spend' ? b.spend :
+                  sortBy === 'clicks' ? (b.clicks || 0) :
+                  sortBy === 'impressions' ? (b.impressions || 0) :
+                  sortBy === 'ctr' ? (b.ctr || 0) :
+                  sortBy === 'cpc' ? (b.cpc || 0) :
+                  (b.percentage || 0)
+      
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return sortOrder === 'asc' ? aVal - bVal : bVal - aVal
+      }
+      
+      const aStr = String(aVal).toLowerCase()
+      const bStr = String(bVal).toLowerCase()
+      return sortOrder === 'asc' ? aStr.localeCompare(bStr) : bStr.localeCompare(aStr)
+    })
+  }
 
   if (analytics.error) {
     return (
@@ -37,17 +91,6 @@ export default function DevicesAnalysisPage() {
       </div>
     )
   }
-
-  // Calculate device insights from available data
-  const devicesAndPlatforms = analytics.devicesAndPlatforms || { available: false }
-  
-  // Use calculated metrics from analytics instead of hardcoded values
-  const totalDevices = devicesAndPlatforms.deviceCount || 0
-  const topDevice = devicesAndPlatforms.topDevice || null
-  const totalPlatforms = devicesAndPlatforms.platforms?.length || 0
-  const totalDeviceSpend = devicesAndPlatforms.totalDeviceSpend || 0
-  const mobileShare = devicesAndPlatforms.mobileShare || 0
-  const averageCTR = devicesAndPlatforms.averageCTR || 0
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -181,46 +224,147 @@ export default function DevicesAnalysisPage() {
         </div>
       )}
 
-      {/* Platform Performance Cards */}
+      {/* Platform Performance Table */}
       {devicesAndPlatforms.platforms && devicesAndPlatforms.platforms.length > 0 && (
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Platform Performance</h2>
-          <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-            {devicesAndPlatforms.platforms.map((platform, index) => (
-              <Card key={platform.platform}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base font-medium flex items-center gap-2">
-                    <div 
-                      className="w-3 h-3 rounded-full" 
-                      style={{ backgroundColor: `hsl(var(--chart-${(index % 5) + 1}))` }}
-                    />
-                    {platform.platform}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Spend</span>
-                      <span className="font-semibold">₹{Math.round(platform.spend).toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Clicks</span>
-                      <span className="font-semibold">{platform.clicks?.toLocaleString() || 'N/A'}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">CTR</span>
-                      <span className="font-semibold">{platform.ctr ? platform.ctr.toFixed(2) : '0.00'}%</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Share</span>
-                      <span className="font-semibold">{platform.percentage?.toFixed(1) || '0.0'}%</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Platform Performance</CardTitle>
+            <CardDescription>
+              Detailed performance breakdown across Facebook, Instagram, and Audience Network placements
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => handleSort('platform')}
+                      className="h-auto p-0 font-medium flex items-center gap-1"
+                    >
+                      Platform
+                      <ArrowUpDown className="h-3 w-3" />
+                    </Button>
+                  </TableHead>
+                  <TableHead className="text-right">
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => handleSort('spend')}
+                      className="h-auto p-0 font-medium flex items-center gap-1"
+                    >
+                      Spend
+                      <ArrowUpDown className="h-3 w-3" />
+                    </Button>
+                  </TableHead>
+                  <TableHead className="text-right">
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => handleSort('clicks')}
+                      className="h-auto p-0 font-medium flex items-center gap-1"
+                    >
+                      Clicks
+                      <ArrowUpDown className="h-3 w-3" />
+                    </Button>
+                  </TableHead>
+                  <TableHead className="text-right">
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => handleSort('impressions')}
+                      className="h-auto p-0 font-medium flex items-center gap-1"
+                    >
+                      Impressions
+                      <ArrowUpDown className="h-3 w-3" />
+                    </Button>
+                  </TableHead>
+                  <TableHead className="text-right">
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => handleSort('ctr')}
+                      className="h-auto p-0 font-medium flex items-center gap-1"
+                    >
+                      CTR
+                      <ArrowUpDown className="h-3 w-3" />
+                    </Button>
+                  </TableHead>
+                  <TableHead className="text-right">
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => handleSort('cpc')}
+                      className="h-auto p-0 font-medium flex items-center gap-1"
+                    >
+                      CPC
+                      <ArrowUpDown className="h-3 w-3" />
+                    </Button>
+                  </TableHead>
+                  <TableHead className="text-right">
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => handleSort('percentage')}
+                      className="h-auto p-0 font-medium flex items-center gap-1"
+                    >
+                      Share %
+                      <ArrowUpDown className="h-3 w-3" />
+                    </Button>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {analytics.loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><div className="h-4 bg-muted animate-pulse rounded" /></TableCell>
+                      <TableCell><div className="h-4 bg-muted animate-pulse rounded" /></TableCell>
+                      <TableCell><div className="h-4 bg-muted animate-pulse rounded" /></TableCell>
+                      <TableCell><div className="h-4 bg-muted animate-pulse rounded" /></TableCell>
+                      <TableCell><div className="h-4 bg-muted animate-pulse rounded" /></TableCell>
+                      <TableCell><div className="h-4 bg-muted animate-pulse rounded" /></TableCell>
+                      <TableCell><div className="h-4 bg-muted animate-pulse rounded" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  getSortedPlatforms().map((platform, index) => (
+                    <TableRow key={platform.platform}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: `hsl(var(--chart-${(index % 5) + 1}))` }}
+                          />
+                          {platform.platform}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right font-mono">
+                        ₹{Math.round(platform.spend).toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {platform.clicks?.toLocaleString() || '0'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {platform.impressions?.toLocaleString() || '0'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {platform.ctr ? platform.ctr.toFixed(2) : '0.00'}%
+                      </TableCell>
+                      <TableCell className="text-right">
+                        ₹{platform.cpc ? platform.cpc.toFixed(2) : '0.00'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {platform.percentage?.toFixed(1) || '0.0'}%
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+            
+            {!analytics.loading && devicesAndPlatforms.platforms.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                No platform performance data available
+              </div>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       {/* Device Insights */}
