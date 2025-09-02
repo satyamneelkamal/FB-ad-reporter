@@ -1,13 +1,16 @@
 /**
  * Analytics Cache Management System
  * 
- * Processes raw Facebook data from monthly_reports into clean, consistent analytics
+ * Processes raw Facebook data from separated tables into clean, consistent analytics
  * for fast dashboard queries. Eliminates data display issues by pre-processing
  * all calculations and storing them in analytics_cache table.
+ * 
+ * Updated to work with separated table structure instead of JSONB monthly_reports
  */
 
 import { supabaseAdmin } from './supabase'
 import { FacebookAnalytics } from './analytics'
+import { getFacebookDataSeparated } from './data-storage-separated'
 import type { Client, MonthlyReport } from './supabase'
 
 export interface AnalyticsCacheData {
@@ -110,7 +113,6 @@ export interface AnalyticsCacheData {
 
   // Additional data for completeness
   adLevel: any[]
-  hourly: any[]
   
   // Data availability flags
   dataAvailability: {
@@ -120,7 +122,6 @@ export interface AnalyticsCacheData {
     regional: boolean
     devices: boolean
     platforms: boolean
-    hourly: boolean
   }
 
   // Metadata
@@ -130,13 +131,68 @@ export interface AnalyticsCacheData {
 }
 
 /**
+ * Process Facebook data from separated tables into clean analytics cache format
+ */
+export async function processSeparatedDataToCache(
+  clientId: number,
+  facebookData: any
+): Promise<AnalyticsCacheData> {
+  console.log(`📊 Processing separated data to analytics cache for client ${clientId}, month ${facebookData.month_identifier}`)
+
+  try {
+    // Generate full analytics using existing FacebookAnalytics class
+    const analytics = FacebookAnalytics.generateFullAnalytics(facebookData)
+    
+    // Calculate total audience from demographics if available
+    let totalAudience = 0
+    if (analytics.demographics.available && facebookData.demographics) {
+      totalAudience = facebookData.demographics.reduce(
+        (sum: number, demo: any) => sum + parseInt(demo.reach || '0'), 0
+      )
+    }
+
+    // Build clean analytics cache data structure
+    const cacheData: AnalyticsCacheData = {
+      overview: analytics.overview,
+      campaigns: analytics.campaigns,
+      demographics: {
+        ...analytics.demographics,
+        totalAudience: totalAudience > 0 ? totalAudience : undefined
+      },
+      regional: analytics.regional,
+      engagement: analytics.engagement,
+      campaignTypes: analytics.campaignTypes,
+      devicesAndPlatforms: analytics.devicesAndPlatforms,
+      audienceProfile: analytics.audienceProfile,
+      adLevel: analytics.adLevel || [],
+      dataAvailability: analytics.dataAvailability,
+      monthYear: facebookData.month_identifier,
+      processedAt: new Date().toISOString(),
+      sourceDataId: 0 // No longer using single monthly_reports ID
+    }
+
+    console.log(`✅ Separated data analytics cache processed successfully:
+    - Total Spend: $${cacheData.overview.totalSpend?.toFixed(2) || '0.00'}
+    - Active Campaigns: ${cacheData.overview.activeCampaigns || 0}
+    - Total Audience: ${totalAudience || 'N/A'}`)
+
+    return cacheData
+
+  } catch (error) {
+    console.error('❌ Error processing separated data analytics cache:', error)
+    throw error
+  }
+}
+
+/**
  * Process raw monthly report data into clean analytics cache format
+ * @deprecated - Use processSeparatedDataToCache for new separated table structure
  */
 export async function processReportToCache(
   clientId: number,
   monthlyReport: MonthlyReport
 ): Promise<AnalyticsCacheData> {
-  console.log(`📊 Processing analytics cache for client ${clientId}, month ${monthlyReport.month_year}`)
+  console.log(`📊 Processing analytics cache for client ${clientId}, month ${monthlyReport.month_year} [LEGACY]`)
 
   try {
     // Generate full analytics using existing FacebookAnalytics class
@@ -162,16 +218,15 @@ export async function processReportToCache(
       engagement: analytics.engagement,
       campaignTypes: analytics.campaignTypes,
       devicesAndPlatforms: analytics.devicesAndPlatforms,
-      audienceProfile: analytics.audienceProfile, // Add the audienceProfile field
+      audienceProfile: analytics.audienceProfile,
       adLevel: analytics.adLevel || [],
-      hourly: analytics.hourly || [],
       dataAvailability: analytics.dataAvailability,
       monthYear: monthlyReport.month_year,
       processedAt: new Date().toISOString(),
       sourceDataId: monthlyReport.id
     }
 
-    console.log(`✅ Analytics cache processed successfully:
+    console.log(`✅ Legacy analytics cache processed successfully:
     - Total Spend: $${cacheData.overview.totalSpend.toFixed(2)}
     - Active Campaigns: ${cacheData.overview.activeCampaigns}
     - Total Audience: ${totalAudience || 'N/A'}`)
@@ -179,7 +234,7 @@ export async function processReportToCache(
     return cacheData
 
   } catch (error) {
-    console.error('❌ Error processing analytics cache:', error)
+    console.error('❌ Error processing legacy analytics cache:', error)
     throw error
   }
 }
@@ -259,7 +314,7 @@ export async function getAnalyticsCache(
 }
 
 /**
- * Process all monthly reports into analytics cache
+ * Process Facebook data from separated tables into analytics cache
  * This should be called whenever new data is collected
  */
 export async function refreshAnalyticsCache(
@@ -268,26 +323,33 @@ export async function refreshAnalyticsCache(
   try {
     console.log(`🔄 Refreshing analytics cache for client ${clientId}`)
 
-    // Get the most recent monthly report for this client
-    const { data: reports, error } = await supabaseAdmin
-      .from('monthly_reports')
-      .select('*')
+    // Find the most recent month with data in separated tables
+    const { data: recentCampaigns, error: campaignsError } = await supabaseAdmin
+      .from('fb_campaigns')
+      .select('month_year, scraped_at')
       .eq('client_id', clientId)
       .order('scraped_at', { ascending: false })
       .limit(1)
 
-    if (error) {
-      return { success: false, error: error.message }
+    if (campaignsError) {
+      return { success: false, error: campaignsError.message }
     }
 
-    if (!reports || reports.length === 0) {
-      return { success: false, error: 'No monthly reports found for client' }
+    if (!recentCampaigns || recentCampaigns.length === 0) {
+      return { success: false, error: 'No Facebook data found in separated tables for client' }
     }
 
-    const latestReport = reports[0] as MonthlyReport
+    const latestMonthYear = recentCampaigns[0].month_year
 
-    // Process the report into analytics cache format
-    const analyticsData = await processReportToCache(clientId, latestReport)
+    // Get all Facebook data from separated tables for the latest month
+    const facebookData = await getFacebookDataSeparated(clientId, latestMonthYear)
+    
+    if (!facebookData) {
+      return { success: false, error: 'Failed to retrieve Facebook data from separated tables' }
+    }
+
+    // Process the separated data into analytics cache format
+    const analyticsData = await processSeparatedDataToCache(clientId, facebookData)
 
     // Save to cache
     const saveResult = await saveAnalyticsCache(clientId, analyticsData)

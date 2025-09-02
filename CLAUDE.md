@@ -115,7 +115,8 @@ POST /api/admin/clients           // Auto-creates clients from Facebook accounts
 - `POST /api/admin/setup` - Admin account creation
 
 ### Client Routes
-- `GET /api/client/reports` - Monthly reports access
+- `GET /api/client/analytics` - Direct analytics from separated tables (analytics cache removed)
+- `GET /api/client/reports` - Monthly reports access (legacy JSONB)
 
 ### Testing
 - `GET/POST /api/test-facebook` - Facebook API connectivity tests
@@ -131,6 +132,10 @@ POST /api/admin/clients           // Auto-creates clients from Facebook accounts
 - **Unified**: Single login endpoint tries admin first, then client
 
 ### Core Tables
+
+**Separated Tables Architecture (v2.8.0+)**
+Facebook data is now stored in 6 normalized tables for better performance and easier querying:
+
 ```sql
 -- Business entities
 CREATE TABLE clients (
@@ -142,12 +147,92 @@ CREATE TABLE clients (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Data storage
+-- Facebook Campaign Data (6 Separated Tables)
+CREATE TABLE fb_campaigns (
+  id SERIAL PRIMARY KEY,
+  client_id INTEGER REFERENCES clients(id) ON DELETE CASCADE,
+  month_year TEXT NOT NULL,
+  campaign_id TEXT NOT NULL,
+  campaign_name TEXT,
+  objective TEXT,
+  spend DECIMAL(10,2),
+  clicks INTEGER,
+  impressions INTEGER,
+  ctr DECIMAL(8,6),
+  cpc DECIMAL(8,4),
+  -- ... additional campaign fields
+  scraped_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(client_id, month_year, campaign_id)
+);
+
+CREATE TABLE fb_demographics (
+  id SERIAL PRIMARY KEY,
+  client_id INTEGER REFERENCES clients(id) ON DELETE CASCADE,
+  month_year TEXT NOT NULL,
+  age TEXT,
+  gender TEXT,
+  spend DECIMAL(10,2),
+  reach INTEGER,
+  impressions INTEGER,
+  actions INTEGER,
+  scraped_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE fb_regional (
+  id SERIAL PRIMARY KEY,
+  client_id INTEGER REFERENCES clients(id) ON DELETE CASCADE,
+  month_year TEXT NOT NULL,
+  region TEXT,
+  spend DECIMAL(10,2),
+  clicks INTEGER,
+  impressions INTEGER,
+  ctr DECIMAL(8,6),
+  cpc DECIMAL(8,4),
+  scraped_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE fb_devices (
+  id SERIAL PRIMARY KEY,
+  client_id INTEGER REFERENCES clients(id) ON DELETE CASCADE,
+  month_year TEXT NOT NULL,
+  publisher_platform TEXT,
+  device_platform TEXT,
+  spend DECIMAL(10,2),
+  impressions INTEGER,
+  scraped_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE fb_platforms (
+  id SERIAL PRIMARY KEY,
+  client_id INTEGER REFERENCES clients(id) ON DELETE CASCADE,
+  month_year TEXT NOT NULL,
+  publisher_platform TEXT,
+  platform_position TEXT,
+  spend DECIMAL(10,2),
+  impressions INTEGER,
+  scraped_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE fb_ad_level (
+  id SERIAL PRIMARY KEY,
+  client_id INTEGER REFERENCES clients(id) ON DELETE CASCADE,
+  month_year TEXT NOT NULL,
+  ad_id TEXT,
+  ad_name TEXT,
+  campaign_id TEXT,
+  adset_id TEXT,
+  spend DECIMAL(10,2),
+  clicks INTEGER,
+  impressions INTEGER,
+  scraped_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Legacy JSONB storage (maintained for data migration)
 CREATE TABLE monthly_reports (
   id SERIAL PRIMARY KEY,
   client_id INTEGER REFERENCES clients(id) ON DELETE CASCADE,
-  month_year TEXT NOT NULL, -- '2025-01'
-  report_data JSONB NOT NULL, -- Complete Facebook API response
+  month_year TEXT NOT NULL,
+  report_data JSONB NOT NULL,
   scraped_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(client_id, month_year)
 );
@@ -156,7 +241,7 @@ CREATE TABLE monthly_reports (
 CREATE TABLE admins (
   id SERIAL PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL, -- bcrypt hashed
+  password_hash TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ```
@@ -252,13 +337,14 @@ DELETE FROM monthly_reports WHERE scraped_at < NOW() - INTERVAL '2 years';
 
 #### Phase 4 - Client Dashboard (COMPLETED)
 - **Client Portal Structure**: Complete client dashboard with all analytics pages
-- **Client API Routes**: Endpoints created for report access
+- **Client API Routes**: Direct access to separated tables (analytics cache eliminated)
 - **Authentication**: Client login and routing working
 - **Data Visualization**: All 6 analytics pages showing accurate Facebook data
 - **Campaign Analytics**: Individual campaign performance with distributed spend ($1,747 each)
 - **Campaign Types**: Objective-based grouping (VIDEO_VIEWS: $13,974, MESSAGES: $12,228)
 - **Demographics Display**: Clean audience metrics with proper totals (6,220 total audience)
 - **Data Accuracy**: Resolved all display issues with robust data processing
+- **Architecture Simplification**: Direct table queries for real-time data access
 
 ### 🔄 Next Steps (Priority Order)
 
@@ -308,6 +394,7 @@ Use provided credentials to test both user types:
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 2.8.0 | 2025-09-02 | 🚀 **SEPARATED TABLES ARCHITECTURE**: Eliminated analytics cache, direct separated table access |
 | 2.7.0 | 2025-08-27 | ✅ **CLIENT DATA DISPLAY RESOLUTION**: Fixed spend distribution, demographics totals, campaign types |
 | 2.6.0 | 2025-08-26 | ✅ **ADMIN DASHBOARD COMPLETION**: Clean navigation, RLS resolution, enhanced data collection |
 | 2.5.0 | 2025-08-25 | 🚀 **MAJOR BREAKTHROUGH**: Facebook API fully operational with 30+ accounts discovered |
@@ -316,6 +403,16 @@ Use provided credentials to test both user types:
 | 2.2.0 | 2025-01-22 | ✅ Enhanced Facebook API with validation and testing |
 | 2.1.0 | 2025-01-22 | ✅ Database setup, core libraries, Facebook API integration |
 | 2.0.0 | 2025-01-XX | **Major Rewrite**: Migrated from N8N to Next.js App Router |
+
+### v2.8.0 Separated Tables Architecture
+- **Analytics Cache Elimination**: Completely removed analytics_cache table and dependencies
+- **Direct Separated Table Access**: Client analytics API now reads directly from 6 normalized tables
+- **Simplified Architecture**: Eliminated intermediate caching layer for faster, more reliable data access
+- **Database Schema Migration**: Successfully migrated 98 JSONB records to normalized table structure
+- **API Simplification**: Removed POST /api/client/analytics cache refresh endpoint
+- **Performance Optimization**: Direct table queries provide better performance than cache processing
+- **Data Consistency**: Real-time data access without cache staleness issues
+- **Maintenance Reduction**: Fewer moving parts, easier debugging and monitoring
 
 ### v2.7.0 Client Data Display Resolution
 - **Campaign Spend Distribution Fix**: Resolved $0 spend display by implementing proportional distribution logic

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminFromRequest } from '@/lib/auth'
 import { supabaseAdmin } from '@/lib/supabase'
+import { getFacebookDataSeparated } from '@/lib/data-storage-separated'
 
 /**
  * Admin Debug API - Get raw database data for comparison
@@ -36,12 +37,9 @@ export async function GET(request: NextRequest) {
       }, { status: 404 })
     }
 
-    // Get analytics cache data
-    const { data: cacheData, error: cacheError } = await supabaseAdmin
-      .from('analytics_cache')
-      .select('analytics_data, last_updated')
-      .eq('client_id', parseInt(clientId))
-      .single()
+    // Get separated table data
+    const separatedData = await getFacebookDataSeparated(parseInt(clientId), monthlyReport.month_year)
+    const separatedDataExists = !!separatedData
 
     // Calculate totals from raw data
     const rawData = monthlyReport.report_data
@@ -78,10 +76,15 @@ export async function GET(request: NextRequest) {
         scraped_at: monthlyReport.scraped_at,
         raw_analysis: rawAnalysis
       },
-      analytics_cache: {
-        exists: !cacheError,
-        last_updated: cacheData?.last_updated || null,
-        overview: cacheError ? null : cacheData?.analytics_data?.overview
+      separated_tables: {
+        exists: separatedDataExists,
+        campaigns_count: separatedData?.campaigns?.length || 0,
+        demographics_count: separatedData?.demographics?.length || 0,
+        regional_count: separatedData?.regional?.length || 0,
+        devices_count: separatedData?.devices?.length || 0,
+        platforms_count: separatedData?.platforms?.length || 0,
+        ad_level_count: separatedData?.adLevel?.length || 0,
+        month_identifier: separatedData?.month_identifier || null
       }
     })
 

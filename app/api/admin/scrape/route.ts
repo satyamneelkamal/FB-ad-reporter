@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAdminFromRequest } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { collectAllFacebookData } from '@/lib/facebook-api';
+import { storeFacebookDataSeparated } from '@/lib/data-storage-separated';
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,17 +32,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
-    // Check if report already exists
-    const { data: existingReport } = await supabaseAdmin
-      .from('monthly_reports')
+    // Check if data already exists in separate tables
+    const { data: existingCampaigns } = await supabaseAdmin
+      .from('fb_campaigns')
       .select('id')
       .eq('client_id', clientId)
       .eq('month_year', monthYear)
-      .single();
+      .limit(1);
 
-    if (existingReport) {
+    if (existingCampaigns && existingCampaigns.length > 0) {
       return NextResponse.json(
-        { error: 'Report already exists for this month' },
+        { error: 'Data already exists for this month' },
         { status: 400 }
       );
     }
@@ -63,40 +64,27 @@ export async function POST(request: NextRequest) {
         dateRange
       );
 
-      // Store in database
-      const { data: report, error: insertError } = await supabaseAdmin
-        .from('monthly_reports')
-        .insert({
-          client_id: clientId,
-          month_year: monthYear,
-          report_data: reportData
-        })
-        .select()
-        .single();
+      // Store in separate normalized tables
+      const storageResult = await storeFacebookDataSeparated(clientId, monthYear, reportData);
 
-      if (insertError) {
-        console.error('Database insert error:', insertError);
+      if (!storageResult.success) {
+        console.error('Database storage errors:', storageResult.errors);
         return NextResponse.json(
-          { error: 'Failed to save report data' },
+          { 
+            error: 'Failed to save Facebook data',
+            details: storageResult.errors.join(', ')
+          },
           { status: 500 }
         );
       }
 
-      // Calculate total records collected across all data types
-      const totalRecords = (reportData.campaigns?.length || 0) +
-                          (reportData.demographics?.length || 0) +
-                          (reportData.regional?.length || 0) +
-                          (reportData.devices?.length || 0) +
-                          (reportData.platforms?.length || 0) +
-                          (reportData.adLevel?.length || 0);
-
       return NextResponse.json({
-        message: `Data collection completed! Successfully collected ${totalRecords} records from Facebook Ads API.`,
-        reportId: report.id,
+        message: `Data collection completed! Successfully stored ${storageResult.recordsInserted} records across 6 normalized tables.`,
         summary: {
-          totalRecords,
+          totalRecords: storageResult.recordsInserted,
           dataTypes: 6,
-          monthYear: monthYear
+          monthYear: monthYear,
+          storage: 'separated_tables'
         }
       });
 

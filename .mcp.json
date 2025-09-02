@@ -25,7 +25,8 @@
         "--project-ref=elyqwcbhphgapuuuabwu"
       ],
       "env": {
-        "SUPABASE_ACCESS_TOKEN": "sbp_35eec82c46f73ad086e34ae1079cf399c663510f"
+        "SUPABASE_ACCESS_TOKEN": "sbp_35eec82c46f73ad086e34ae1079cf399c663510f",
+        "NODE_OPTIONS": "--experimental-global-webcrypto --experimental-modules --experimental-specifier-resolution=node"
       }
     },
     "playwright": {
