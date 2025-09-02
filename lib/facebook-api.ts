@@ -383,27 +383,13 @@ export async function fetchPlatformData(config: FacebookApiConfig, dateRange: Fa
 }
 
 /**
- * 6. Hourly Performance
- * Level: account, Breakdowns: hourly_stats_aggregated_by_advertiser_time_zone
+ * 6. Hourly Performance - REMOVED
+ * This data type has been removed to reduce database load as it provides
+ * minimal value while creating significant storage overhead.
  */
-export async function fetchHourlyData(config: FacebookApiConfig, dateRange: FacebookDateRange) {
-  const url = new URL(`https://graph.facebook.com/${config.apiVersion}/${config.adAccountId}/insights`);
-  
-  url.searchParams.set('fields', REGIONAL_FIELDS); // Uses same fields as regional
-  url.searchParams.set('level', 'account');
-  url.searchParams.set('breakdowns', JSON.stringify(['hourly_stats_aggregated_by_advertiser_time_zone']));
-  url.searchParams.set('time_range', JSON.stringify({
-    since: dateRange.since,
-    until: dateRange.until
-  }));
-  url.searchParams.set('action_attribution_windows', JSON.stringify(config.attributionWindows));
-  url.searchParams.set('access_token', config.accessToken);
-  
-  return makeApiRequest(url.toString());
-}
 
 /**
- * 7. Ad-Level Performance
+ * 6. Ad-Level Performance
  * Level: ad, Breakdowns: none
  */
 export async function fetchAdLevelData(config: FacebookApiConfig, dateRange: FacebookDateRange) {
@@ -450,6 +436,7 @@ function validateAdAccountId(adAccountId: string): boolean {
 /**
  * Main function to collect all Facebook data types
  * Enhanced with comprehensive error handling and validation
+ * Note: Hourly data collection removed to reduce database load
  */
 export async function collectAllFacebookData(adAccountId: string, dateRange: FacebookDateRange): Promise<{
   campaigns: any[];
@@ -457,7 +444,6 @@ export async function collectAllFacebookData(adAccountId: string, dateRange: Fac
   regional: any[];
   devices: any[];
   platforms: any[];
-  hourly: any[];
   adLevel: any[];
   scraped_at: string;
   date_range: FacebookDateRange;
@@ -502,7 +488,6 @@ export async function collectAllFacebookData(adAccountId: string, dateRange: Fac
     regional: [] as any[],
     devices: [] as any[],
     platforms: [] as any[],
-    hourly: [] as any[],
     adLevel: [] as any[],
     scraped_at: new Date().toISOString(),
     date_range: dateRange,
@@ -522,7 +507,6 @@ export async function collectAllFacebookData(adAccountId: string, dateRange: Fac
     { name: 'regional', fn: () => fetchRegionalData(config, dateRange) },
     { name: 'devices', fn: () => fetchDeviceData(config, dateRange) },
     { name: 'platforms', fn: () => fetchPlatformData(config, dateRange) },
-    { name: 'hourly', fn: () => fetchHourlyData(config, dateRange) },
     { name: 'adLevel', fn: () => fetchAdLevelData(config, dateRange) }
   ];
 
@@ -557,7 +541,7 @@ export async function collectAllFacebookData(adAccountId: string, dateRange: Fac
 
   console.log(`🎉 Collection complete! Summary:
     - Total records: ${results.collection_summary.total_records}
-    - Successful endpoints: ${results.collection_summary.successful_endpoints}/7
+    - Successful endpoints: ${results.collection_summary.successful_endpoints}/6
     - Failed endpoints: ${results.collection_summary.failed_endpoints.length}
     - Warnings: ${results.collection_summary.warnings.length}`);
 

@@ -88,7 +88,6 @@ export async function POST(request: NextRequest) {
                           (reportData.regional?.length || 0) +
                           (reportData.devices?.length || 0) +
                           (reportData.platforms?.length || 0) +
-                          (reportData.hourly?.length || 0) +
                           (reportData.adLevel?.length || 0);
 
       return NextResponse.json({
@@ -96,7 +95,7 @@ export async function POST(request: NextRequest) {
         reportId: report.id,
         summary: {
           totalRecords,
-          dataTypes: 7,
+          dataTypes: 6,
           monthYear: monthYear
         }
       });

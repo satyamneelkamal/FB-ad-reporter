@@ -8,7 +8,7 @@ Modern Next.js application providing comprehensive Facebook Ads data collection 
 - **Multi-Client Dashboard**: Secure individual client portals
 - **Role-Based Access**: JWT middleware protection
 - **Modern UI**: shadcn/ui components with responsive design
-- **Facebook Integration**: 7 data types collection via Graph API v20.0
+- **Facebook Integration**: 6 data types collection via Graph API v20.0
 
 ## 🏗️ Architecture
 ```
@@ -69,21 +69,22 @@ middleware.ts          # Route protection
 ### MAJOR BREAKTHROUGH - Facebook API Access
 **Successfully resolved Facebook API permissions and achieved full integration:**
 - **30+ Facebook Ad Accounts Discovered**: Auto-Import feature working via `me/adaccounts` endpoint
-- **Complete Data Collection**: All 7 data types confirmed working with proper data validation
+- **Complete Data Collection**: All 6 data types confirmed working with proper data validation
 - **Data Accuracy Resolved**: Fixed Facebook API data structure peculiarities with spend distribution logic
 - **Real-Time Integration**: Live Facebook Graph API v20.0 connection established
 - **Account Auto-Discovery**: Admin can now see and import all accessible Facebook ad accounts
 - **Enhanced Data Collection**: Improved completion messaging and error handling
 - **Production Ready**: Facebook API integration fully operational with accurate client data display
 
-### Data Types Collected (7 via Graph API v20.0)
+### Data Types Collected (6 via Graph API v20.0)
 1. **Campaign Performance**: `campaign_id`, `spend`, `clicks`, `impressions`, `ctr` (with spend distribution logic)
 2. **Demographics**: Age/gender breakdowns with reach and actions (processed for accurate totals)
 3. **Regional Performance**: Geographic performance data
 4. **Device Performance**: Platform-specific metrics
 5. **Platform Breakdown**: Publisher platform position data  
-6. **Hourly Performance**: Time-based performance patterns
-7. **Ad-Level Performance**: Individual ad metrics and performance
+6. **Ad-Level Performance**: Individual ad metrics and performance
+
+*Note: Hourly performance data was removed to reduce database load while maintaining all essential analytics capabilities.*
 
 ### Data Processing Intelligence
 **Advanced Facebook API Data Handling:**
@@ -253,7 +254,7 @@ DELETE FROM monthly_reports WHERE scraped_at < NOW() - INTERVAL '2 years';
 - **Client Portal Structure**: Complete client dashboard with all analytics pages
 - **Client API Routes**: Endpoints created for report access
 - **Authentication**: Client login and routing working
-- **Data Visualization**: All 7 analytics pages showing accurate Facebook data
+- **Data Visualization**: All 6 analytics pages showing accurate Facebook data
 - **Campaign Analytics**: Individual campaign performance with distributed spend ($1,747 each)
 - **Campaign Types**: Objective-based grouping (VIDEO_VIEWS: $13,974, MESSAGES: $12,228)
 - **Demographics Display**: Clean audience metrics with proper totals (6,220 total audience)
@@ -335,7 +336,7 @@ Use provided credentials to test both user types:
 ### v2.5.0 Breakthrough Details
 - **Facebook API Integration**: Resolved permissions issues, full access achieved
 - **30+ Ad Accounts**: Auto-discovery via Graph API working perfectly
-- **All 7 Data Types**: Complete data collection pipeline operational
+- **All 6 Data Types**: Complete data collection pipeline operational
 - **Admin Auto-Import**: Facebook accounts can be discovered and imported automatically
 - **Production Ready**: Core Facebook integration fully functional
 

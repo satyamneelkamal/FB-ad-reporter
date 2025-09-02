@@ -92,12 +92,7 @@ export const PlatformSchema = FacebookBaseMetrics.extend({
   date_stop: z.string().optional()
 })
 
-// Hourly data schema
-export const HourlySchema = FacebookBaseMetrics.extend({
-  hourly_stats_aggregated_by_advertiser_time_zone: z.string(),
-  date_start: z.string().optional(),
-  date_stop: z.string().optional()
-})
+// Hourly data schema - REMOVED to reduce database load
 
 // Ad-level data schema
 export const AdLevelSchema = FacebookBaseMetrics.extend({
@@ -122,7 +117,6 @@ export const FacebookDataCollectionSchema = z.object({
   regional: z.array(RegionalSchema),
   devices: z.array(DeviceSchema),
   platforms: z.array(PlatformSchema),
-  hourly: z.array(HourlySchema),
   adLevel: z.array(AdLevelSchema),
   scraped_at: z.string(),
   date_range: z.object({
@@ -238,7 +232,6 @@ export function transformFacebookData(data: ValidatedFacebookData): {
   cleanedData.regional = cleanNumericFields(cleanedData.regional)
   cleanedData.devices = cleanNumericFields(cleanedData.devices)
   cleanedData.platforms = cleanNumericFields(cleanedData.platforms)
-  cleanedData.hourly = cleanNumericFields(cleanedData.hourly)
   cleanedData.adLevel = cleanNumericFields(cleanedData.adLevel)
 
   // Remove duplicate records based on key fields
@@ -292,7 +285,7 @@ export function generateDataQualityReport(data: ValidatedFacebookData): {
 
   // Calculate consistency score  
   const failedEndpoints = data.collection_summary.failed_endpoints.length
-  const consistencyScore = ((7 - failedEndpoints) / 7) * 100
+  const consistencyScore = ((6 - failedEndpoints) / 6) * 100
   
   if (consistencyScore < 100) {
     recommendations.push(`${failedEndpoints} endpoints failed - check API permissions and ad account access`)

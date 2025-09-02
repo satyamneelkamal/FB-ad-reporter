@@ -694,7 +694,6 @@ export class FacebookAnalytics {
     const regional = reportData.regional || []
     const devices = reportData.devices || []
     const platforms = reportData.platforms || []
-    const hourly = reportData.hourly || []
     
     // Calculate total spend for campaign distribution
     const totalSpend = demographics.length > 0 
@@ -717,15 +716,13 @@ export class FacebookAnalytics {
       devicesAndPlatforms: this.processDevices(devices, platforms),
       audienceProfile,
       adLevel: adLevel,
-      hourly: hourly,
       dataAvailability: {
         campaigns: campaigns.length > 0,
         adLevel: adLevel.length > 0,
         demographics: demographics.length > 0,
         regional: regional.length > 0,
         devices: devices.length > 0,
-        platforms: platforms.length > 0,
-        hourly: hourly.length > 0
+        platforms: platforms.length > 0
       }
     }
   }
