@@ -158,6 +158,19 @@ export function ChartAreaInteractive({
   description = "Showing total visitors for the last 3 months"
 }: AreaChartProps) {
   const [timeRange, setTimeRange] = React.useState("90d")
+  const [hiddenSeries, setHiddenSeries] = React.useState<Set<string>>(new Set())
+
+  const toggleSeries = (seriesName: string) => {
+    setHiddenSeries(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(seriesName)) {
+        newSet.delete(seriesName)
+      } else {
+        newSet.add(seriesName)
+      }
+      return newSet
+    })
+  }
 
   const filteredData = data.filter((item) => {
     const date = new Date(item.date)
@@ -354,45 +367,80 @@ export function ChartAreaInteractive({
                 );
               }}
             />
-            <Area
-              yAxisId="volume"
-              dataKey="clicks"
-              type="natural"
-              fill="url(#fillClicks)"
-              stroke="var(--chart-1)"
-              strokeWidth={2}
-              stackId="volume"
-            />
-            <Area
-              yAxisId="volume"
-              dataKey="impressions"
-              type="natural"
-              fill="url(#fillImpressions)" 
-              stroke="var(--chart-2)"
-              strokeWidth={2}
-              stackId="volume"
-            />
-            <Area
-              yAxisId="volume"
-              dataKey="reach"
-              type="natural"
-              fill="url(#fillReach)"
-              stroke="var(--chart-3)"
-              strokeWidth={2}
-              stackId="volume"
-            />
-            <Area
-              yAxisId="spend"
-              dataKey="spend"
-              type="natural"
-              fill="url(#fillSpend)"
-              stroke="var(--chart-4)"
-              strokeWidth={3}
-              strokeDasharray="5 5"
-            />
-            <ChartLegend content={<ChartLegendContent />} />
+            {!hiddenSeries.has('clicks') && (
+              <Area
+                yAxisId="volume"
+                dataKey="clicks"
+                type="natural"
+                fill="url(#fillClicks)"
+                stroke="var(--chart-1)"
+                strokeWidth={2}
+                stackId="volume"
+              />
+            )}
+            {!hiddenSeries.has('impressions') && (
+              <Area
+                yAxisId="volume"
+                dataKey="impressions"
+                type="natural"
+                fill="url(#fillImpressions)" 
+                stroke="var(--chart-2)"
+                strokeWidth={2}
+                stackId="volume"
+              />
+            )}
+            {!hiddenSeries.has('reach') && (
+              <Area
+                yAxisId="volume"
+                dataKey="reach"
+                type="natural"
+                fill="url(#fillReach)"
+                stroke="var(--chart-3)"
+                strokeWidth={2}
+                stackId="volume"
+              />
+            )}
+            {!hiddenSeries.has('spend') && (
+              <Area
+                yAxisId="spend"
+                dataKey="spend"
+                type="natural"
+                fill="url(#fillSpend)"
+                stroke="var(--chart-4)"
+                strokeWidth={3}
+                strokeDasharray="5 5"
+              />
+            )}
           </AreaChart>
         </ChartContainer>
+        
+        {/* Custom Clickable Legend */}
+        <div className="flex flex-wrap justify-center gap-4 mt-4">
+          {[
+            { key: 'clicks', label: 'Clicks', color: 'var(--chart-1)' },
+            { key: 'impressions', label: 'Impressions', color: 'var(--chart-2)' },
+            { key: 'reach', label: 'Reach', color: 'var(--chart-3)' },
+            { key: 'spend', label: 'Spend (₹)', color: 'var(--chart-4)' },
+          ].map(({ key, label, color }) => (
+            <button
+              key={key}
+              onClick={() => toggleSeries(key)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                hiddenSeries.has(key) 
+                  ? 'text-muted-foreground bg-muted/50' 
+                  : 'text-foreground bg-background border'
+              } hover:bg-muted/80`}
+            >
+              <div 
+                className={`w-3 h-3 rounded-full transition-opacity ${
+                  hiddenSeries.has(key) ? 'opacity-40' : 'opacity-100'
+                }`}
+                style={{ backgroundColor: color }}
+              />
+              <span className={hiddenSeries.has(key) ? 'line-through' : ''}>{label}</span>
+            </button>
+          ))}
+        </div>
       </CardContent>
     </Card>
   )
