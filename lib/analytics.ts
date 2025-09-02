@@ -47,6 +47,7 @@ export interface RegionalData {
     region: string
     spend: number
     clicks: number
+    impressions: number
     ctr: number
     cpc: number
     reach: number
@@ -287,6 +288,7 @@ export class FacebookAnalytics {
         region: region.region || region.region_name || 'Unknown',
         spend,
         clicks: parseInt(region.clicks || '0'),
+        impressions: parseInt(region.impressions || '0'),
         ctr: parseFloat(region.ctr || '0'),
         cpc: parseFloat(region.cpc || '0'),
         reach: parseInt(region.reach || '0'),
