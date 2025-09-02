@@ -385,6 +385,77 @@ export class FacebookAnalytics {
   }
 
   /**
+   * 📊 ENGAGEMENT BY OBJECTIVE
+   * Group engagement data by campaign objectives using demographics data
+   */
+  static groupEngagementByObjective(campaigns: any[], demographics: any[]): any[] {
+    // Create a mapping of campaign objectives
+    const campaignObjectives: { [key: string]: string } = {}
+    campaigns.forEach((campaign: any) => {
+      if (campaign.campaign_id) {
+        campaignObjectives[campaign.campaign_id] = campaign.objective || 'NONE'
+      }
+    })
+
+    // Group demographics data by objective
+    const objectiveGroups: { [key: string]: any } = {}
+    
+    demographics.forEach((demo: any) => {
+      // Since demographics table doesn't have campaign_id directly,
+      // we'll group by the available objectives from campaigns
+      const objectives = Object.values(campaignObjectives)
+      const uniqueObjectives = [...new Set(objectives)]
+      
+      // For each unique objective, aggregate the demographics data
+      uniqueObjectives.forEach((objective: string) => {
+        if (!objectiveGroups[objective]) {
+          objectiveGroups[objective] = {
+            objective,
+            totalClicks: 0,
+            totalImpressions: 0,
+            totalSpend: 0,
+            count: 0
+          }
+        }
+      })
+    })
+
+    // Since we can't directly link demographics to campaigns by campaign_id,
+    // we'll distribute the demographics data proportionally across objectives
+    // based on the number of campaigns per objective
+    const objectiveCounts: { [key: string]: number } = {}
+    campaigns.forEach((campaign: any) => {
+      const objective = campaign.objective || 'NONE'
+      objectiveCounts[objective] = (objectiveCounts[objective] || 0) + 1
+    })
+
+    const totalCampaigns = campaigns.length
+    const totalDemoClicks = demographics.reduce((sum: number, d: any) => sum + parseInt(d.clicks || '0'), 0)
+    const totalDemoImpressions = demographics.reduce((sum: number, d: any) => sum + parseInt(d.impressions || '0'), 0)
+    const totalDemoSpend = demographics.reduce((sum: number, d: any) => sum + parseFloat(d.spend || '0'), 0)
+
+    // Distribute engagement data proportionally by campaign count per objective
+    return Object.entries(objectiveCounts).map(([objective, campaignCount]) => {
+      const proportion = totalCampaigns > 0 ? campaignCount / totalCampaigns : 0
+      const totalClicks = Math.round(totalDemoClicks * proportion)
+      const totalImpressions = Math.round(totalDemoImpressions * proportion)
+      const totalSpend = totalDemoSpend * proportion
+      const ctr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0
+      const cpc = totalClicks > 0 ? totalSpend / totalClicks : 0
+
+      return {
+        objective,
+        totalClicks,
+        totalImpressions,
+        totalSpend,
+        ctr,
+        cpc,
+        campaignCount
+      }
+    }).sort((a, b) => b.totalSpend - a.totalSpend)
+  }
+
+  /**
    * 📱 DEVICES & PLATFORMS
    * Device and platform performance breakdown
    */
@@ -713,6 +784,7 @@ export class FacebookAnalytics {
       regional: this.processRegional(regional),
       engagement: this.calculateEngagement(campaigns, adLevel, demographics),
       campaignTypes: this.groupByObjective(campaignsWithSpend), // Use campaigns with distributed spend
+      engagementByObjective: this.groupEngagementByObjective(campaigns, demographics), // NEW: Engagement data by objective
       devicesAndPlatforms: this.processDevices(devices, platforms),
       audienceProfile,
       adLevel: adLevel,

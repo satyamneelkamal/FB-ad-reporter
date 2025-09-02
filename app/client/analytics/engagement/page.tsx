@@ -245,19 +245,13 @@ export default function EngagementMetricsPage() {
       )}
 
       {/* Engagement Summary by Objective */}
-      {analytics.campaignTypes && analytics.campaignTypes.length > 0 && (
+      {analytics.engagementByObjective && analytics.engagementByObjective.length > 0 && (
         <div>
           <h2 className="text-xl font-semibold mb-4">Engagement by Campaign Objective</h2>
           <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-            {analytics.campaignTypes
+            {analytics.engagementByObjective
               .sort((a, b) => b.totalSpend - a.totalSpend)
               .map((objective, index) => {
-                const objCampaigns = analytics.campaigns.filter(c => c.objective === objective.objective)
-                const totalClicks = objCampaigns.reduce((sum, c) => sum + (c.clicks || 0), 0)
-                const totalImpressions = objCampaigns.reduce((sum, c) => sum + (c.impressions || 0), 0)
-                const objCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0
-                const objCpc = totalClicks > 0 ? objective.totalSpend / totalClicks : 0
-                
                 return (
                   <Card key={objective.objective}>
                     <CardHeader className="pb-2">
@@ -273,19 +267,19 @@ export default function EngagementMetricsPage() {
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-muted-foreground">CTR</span>
-                          <span className="font-semibold">{objCtr.toFixed(2)}%</span>
+                          <span className="font-semibold">{objective.ctr.toFixed(2)}%</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-muted-foreground">Clicks</span>
-                          <span className="font-semibold">{totalClicks.toLocaleString()}</span>
+                          <span className="font-semibold">{objective.totalClicks.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-muted-foreground">Impressions</span>
-                          <span className="font-semibold">{totalImpressions.toLocaleString()}</span>
+                          <span className="font-semibold">{objective.totalImpressions.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-muted-foreground">CPC</span>
-                          <span className="font-semibold">₹{objCpc.toFixed(2)}</span>
+                          <span className="font-semibold">₹{objective.cpc.toFixed(2)}</span>
                         </div>
                       </div>
                     </CardContent>

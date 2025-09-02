@@ -28,6 +28,7 @@ export interface AnalyticsData {
   campaigns: any[]
   campaignTypes: any[]
   engagement: any
+  engagementByObjective: any[]
   demographics: any
   regional: any
   devicesAndPlatforms: any
@@ -55,6 +56,7 @@ export function useAnalytics() {
     campaigns: [],
     campaignTypes: [],
     engagement: null,
+    engagementByObjective: [],
     demographics: null,
     regional: null,
     devicesAndPlatforms: null,

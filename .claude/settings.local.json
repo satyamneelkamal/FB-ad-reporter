@@ -23,7 +23,8 @@
       "Bash(cd:*)",
       "Bash(cd:*)",
       "Bash(npx shadcn@latest add:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "mcp__supabase__list_tables"
     ],
     "additionalDirectories": [
       "/mnt/c/Users/user/Desktop"
