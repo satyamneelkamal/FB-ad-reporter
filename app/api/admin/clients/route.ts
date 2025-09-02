@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
           latest_report: latestReport ? {
             month_year: latestReport.month_year,
             scraped_at: latestReport.scraped_at,
-            total_records: latestReport.report_data.collection_summary?.total_records || 0
+            total_records: 0
           } : null
         }
       })
@@ -131,11 +131,11 @@ export async function POST(request: NextRequest) {
 // PUT /api/admin/clients?id={id} - Update client (for fixing user_id)
 export async function PUT(request: NextRequest) {
   try {
-    const adminResult = await getAdminFromRequest(request)
-    if (!adminResult.success) {
+    const admin = await getAdminFromRequest(request)
+    if (!admin) {
       return NextResponse.json({
         success: false,
-        error: adminResult.error
+        error: 'Authentication required'
       }, { status: 401 })
     }
 

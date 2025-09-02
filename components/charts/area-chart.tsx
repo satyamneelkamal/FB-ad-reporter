@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
 import {
   Card,
@@ -141,6 +141,8 @@ interface AreaChartProps {
     date: string
     clicks?: number
     impressions?: number
+    reach?: number
+    spend?: number
     desktop?: number
     mobile?: number
   }>
@@ -203,11 +205,23 @@ export function ChartAreaInteractive({
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         <ChartContainer
           config={config}
-          className="aspect-auto h-[250px] w-full"
+          className="aspect-auto h-[300px] w-full"
         >
-          <AreaChart data={filteredData}>
+          <AreaChart data={filteredData} margin={{ left: 12, right: 12 }}>
             <defs>
-              <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="fillClicks" x1="0" y1="0" x2="0" y2="1">
+                <stop
+                  offset="5%"
+                  stopColor="var(--chart-1)"
+                  stopOpacity={0.8}
+                />
+                <stop
+                  offset="95%"
+                  stopColor="var(--chart-1)"
+                  stopOpacity={0.1}
+                />
+              </linearGradient>
+              <linearGradient id="fillImpressions" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
                   stopColor="var(--chart-2)"
@@ -219,16 +233,28 @@ export function ChartAreaInteractive({
                   stopOpacity={0.1}
                 />
               </linearGradient>
-              <linearGradient id="fillMobile" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="fillReach" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="var(--chart-1)"
+                  stopColor="var(--chart-3)"
+                  stopOpacity={0.6}
+                />
+                <stop
+                  offset="95%"
+                  stopColor="var(--chart-3)"
+                  stopOpacity={0.1}
+                />
+              </linearGradient>
+              <linearGradient id="fillSpend" x1="0" y1="0" x2="0" y2="1">
+                <stop
+                  offset="5%"
+                  stopColor="var(--chart-4)"
                   stopOpacity={0.8}
                 />
                 <stop
                   offset="95%"
-                  stopColor="var(--chart-1)"
-                  stopOpacity={0.1}
+                  stopColor="var(--chart-4)"
+                  stopOpacity={0.2}
                 />
               </linearGradient>
             </defs>
@@ -247,33 +273,122 @@ export function ChartAreaInteractive({
                 })
               }}
             />
+            {/* Left Y-axis for volume metrics (clicks, impressions, reach) */}
+            <YAxis
+              yAxisId="volume"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              tickFormatter={(value) => {
+                if (value >= 1000) {
+                  return `${(value / 1000).toFixed(1)}k`
+                }
+                return value.toString()
+              }}
+            />
+            {/* Right Y-axis for spend metric */}
+            <YAxis
+              yAxisId="spend"
+              orientation="right"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              tickFormatter={(value) => `₹${value}`}
+            />
             <ChartTooltip
               cursor={false}
-              content={
-                <ChartTooltipContent
-                  labelFormatter={(value) => {
-                    return new Date(value).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    })
-                  }}
-                  indicator="dot"
-                />
-              }
+              content={({ active, payload, label }) => {
+                if (!active || !payload?.length) return null;
+                
+                return (
+                  <div className="rounded-lg border bg-background p-3 shadow-lg">
+                    <div className="font-medium mb-2">
+                      {new Date(label).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </div>
+                    <div className="space-y-1">
+                      {payload.map((entry) => {
+                        const { dataKey, value, color } = entry;
+                        let displayName = '';
+                        let displayValue = '';
+                        
+                        switch (dataKey) {
+                          case 'clicks':
+                            displayName = 'Clicks';
+                            displayValue = Number(value).toLocaleString();
+                            break;
+                          case 'impressions':
+                            displayName = 'Impressions';
+                            displayValue = Number(value).toLocaleString();
+                            break;
+                          case 'reach':
+                            displayName = 'Reach';
+                            displayValue = Number(value).toLocaleString();
+                            break;
+                          case 'spend':
+                            displayName = 'Spend';
+                            displayValue = `₹${Number(value).toLocaleString()}`;
+                            break;
+                          default:
+                            displayName = String(dataKey);
+                            displayValue = Number(value).toLocaleString();
+                        }
+                        
+                        return (
+                          <div key={dataKey} className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="w-2 h-2 rounded-full" 
+                                style={{ backgroundColor: color }}
+                              />
+                              <span className="text-sm text-muted-foreground">{displayName}</span>
+                            </div>
+                            <span className="font-semibold text-sm">{displayValue}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              }}
             />
             <Area
+              yAxisId="volume"
               dataKey="clicks"
               type="natural"
-              fill="url(#fillMobile)"
+              fill="url(#fillClicks)"
               stroke="var(--chart-1)"
-              stackId="a"
+              strokeWidth={2}
+              stackId="volume"
             />
             <Area
+              yAxisId="volume"
               dataKey="impressions"
               type="natural"
-              fill="url(#fillDesktop)" 
+              fill="url(#fillImpressions)" 
               stroke="var(--chart-2)"
-              stackId="a"
+              strokeWidth={2}
+              stackId="volume"
+            />
+            <Area
+              yAxisId="volume"
+              dataKey="reach"
+              type="natural"
+              fill="url(#fillReach)"
+              stroke="var(--chart-3)"
+              strokeWidth={2}
+              stackId="volume"
+            />
+            <Area
+              yAxisId="spend"
+              dataKey="spend"
+              type="natural"
+              fill="url(#fillSpend)"
+              stroke="var(--chart-4)"
+              strokeWidth={3}
+              strokeDasharray="5 5"
             />
             <ChartLegend content={<ChartLegendContent />} />
           </AreaChart>

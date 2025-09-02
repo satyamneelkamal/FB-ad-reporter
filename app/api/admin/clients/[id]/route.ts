@@ -9,19 +9,20 @@ import { supabaseAdmin } from '@/lib/supabase'
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verify admin authentication
-    const adminResult = await getAdminFromRequest(request)
-    if (!adminResult.success) {
+    const admin = await getAdminFromRequest(request)
+    if (!admin) {
       return NextResponse.json({
         success: false,
-        error: adminResult.error
+        error: 'Authentication required'
       }, { status: 401 })
     }
 
-    const clientId = parseInt(params.id)
+    const resolvedParams = await params
+    const clientId = parseInt(resolvedParams.id)
     const body = await request.json()
 
     console.log(`🔧 Admin updating client ${clientId}:`, body)

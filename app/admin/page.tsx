@@ -31,6 +31,7 @@ const adminNavigation = {
       icon: "IconDatabase",
     },
   ],
+  navClouds: [],
   navSecondary: [
     {
       title: "Settings",
@@ -38,6 +39,7 @@ const adminNavigation = {
       icon: "IconSettings",
     },
   ],
+  documents: [],
 }
 
 export default function AdminDashboard() {

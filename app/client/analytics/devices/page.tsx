@@ -251,7 +251,7 @@ export default function DevicesAnalysisPage() {
                     <Button 
                       variant="ghost" 
                       onClick={() => handleSort('spend')}
-                      className="h-auto p-0 font-medium flex items-center gap-1"
+                      className="h-auto p-0 font-medium text-right w-full justify-end flex items-center gap-1"
                     >
                       Spend
                       <ArrowUpDown className="h-3 w-3" />
@@ -261,7 +261,7 @@ export default function DevicesAnalysisPage() {
                     <Button 
                       variant="ghost" 
                       onClick={() => handleSort('clicks')}
-                      className="h-auto p-0 font-medium flex items-center gap-1"
+                      className="h-auto p-0 font-medium text-right w-full justify-end flex items-center gap-1"
                     >
                       Clicks
                       <ArrowUpDown className="h-3 w-3" />
@@ -271,7 +271,7 @@ export default function DevicesAnalysisPage() {
                     <Button 
                       variant="ghost" 
                       onClick={() => handleSort('impressions')}
-                      className="h-auto p-0 font-medium flex items-center gap-1"
+                      className="h-auto p-0 font-medium text-right w-full justify-end flex items-center gap-1"
                     >
                       Impressions
                       <ArrowUpDown className="h-3 w-3" />
@@ -281,7 +281,7 @@ export default function DevicesAnalysisPage() {
                     <Button 
                       variant="ghost" 
                       onClick={() => handleSort('ctr')}
-                      className="h-auto p-0 font-medium flex items-center gap-1"
+                      className="h-auto p-0 font-medium text-right w-full justify-end flex items-center gap-1"
                     >
                       CTR
                       <ArrowUpDown className="h-3 w-3" />
@@ -291,7 +291,7 @@ export default function DevicesAnalysisPage() {
                     <Button 
                       variant="ghost" 
                       onClick={() => handleSort('cpc')}
-                      className="h-auto p-0 font-medium flex items-center gap-1"
+                      className="h-auto p-0 font-medium text-right w-full justify-end flex items-center gap-1"
                     >
                       CPC
                       <ArrowUpDown className="h-3 w-3" />
@@ -301,7 +301,7 @@ export default function DevicesAnalysisPage() {
                     <Button 
                       variant="ghost" 
                       onClick={() => handleSort('percentage')}
-                      className="h-auto p-0 font-medium flex items-center gap-1"
+                      className="h-auto p-0 font-medium text-right w-full justify-end flex items-center gap-1"
                     >
                       Share %
                       <ArrowUpDown className="h-3 w-3" />

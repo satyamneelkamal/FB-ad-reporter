@@ -41,6 +41,7 @@ const adminNavigation = {
       icon: "IconDatabase",
     },
   ],
+  navClouds: [],
   navSecondary: [
     {
       title: "Settings",
@@ -48,6 +49,7 @@ const adminNavigation = {
       icon: "IconSettings",
     },
   ],
+  documents: [],
 }
 
 interface Client {

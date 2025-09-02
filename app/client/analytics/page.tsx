@@ -148,7 +148,7 @@ export default function AnalyticsDashboard() {
               data={transformEngagementToLineChart(analytics.engagement)}
               config={createEngagementChartConfig()}
               title="Engagement Performance"
-              description="Facebook Ads clicks and impressions trends"
+              description="Facebook Ads clicks, impressions, reach, and spend trends over time with dual Y-axis"
             />
           </div>
 

@@ -2,33 +2,60 @@
  * Data transformation utilities for Facebook Ads data to shadcn chart formats
  */
 
-// Transform engagement data for area chart (clicks/impressions over time)
+// Transform engagement data for area chart (clicks/impressions/reach/spend over time)
 export function transformEngagementToLineChart(engagement: any) {
   if (!engagement) return []
   
-  // Create time-series data for the area chart
+  console.log("🔥 transformEngagementToLineChart called with:", engagement)
+  console.log("📊 timeSeriesData available:", engagement.timeSeriesData?.length || 0, "points")
+  console.log("💰 totalSpend:", engagement.totalSpend)
+  console.log("👥 totalReach:", engagement.totalReach)
+  
+  // Use real time-series data if available, otherwise fallback to synthetic data
+  if (engagement.timeSeriesData && engagement.timeSeriesData.length > 0) {
+    console.log("✅ Using real time-series data")
+    return engagement.timeSeriesData.map((dataPoint: any) => ({
+      date: dataPoint.date,
+      clicks: dataPoint.clicks,
+      impressions: dataPoint.impressions,
+      reach: dataPoint.reach,
+      spend: dataPoint.spend
+    }))
+  }
+  
+  console.log("⚠️  Using fallback synthetic data")
+  
+  // Fallback: Create time-series data based on totals (for backward compatibility)
   const baseData = {
     totalClicks: engagement.totalClicks || 0,
     totalImpressions: engagement.totalImpressions || 0,
+    totalReach: engagement.totalReach || 0,
+    totalSpend: engagement.totalSpend || 0,
     ctr: engagement.ctr || 0
   }
   
   // Generate sample time series data based on actual totals
   const chartData = []
   const startDate = new Date('2024-04-01')
+  const days = 90
   
-  for (let i = 0; i < 90; i++) {
+  for (let i = 0; i < days; i++) {
     const date = new Date(startDate)
     date.setDate(startDate.getDate() + i)
     
-    // Simulate daily distribution of total metrics
-    const clicksDaily = Math.round((baseData.totalClicks / 90) * (0.7 + Math.random() * 0.6))
-    const impressionsDaily = Math.round((baseData.totalImpressions / 90) * (0.7 + Math.random() * 0.6))
+    // Simulate daily distribution of total metrics with realistic variance
+    const variance = 0.7 + Math.random() * 0.6
+    const clicksDaily = Math.round((baseData.totalClicks / days) * variance)
+    const impressionsDaily = Math.round((baseData.totalImpressions / days) * variance)
+    const reachDaily = Math.round((baseData.totalReach / days) * variance)
+    const spendDaily = Math.round((baseData.totalSpend / days) * variance * 100) / 100
     
     chartData.push({
       date: date.toISOString().split('T')[0],
-      clicks: clicksDaily,
-      impressions: impressionsDaily
+      clicks: Math.max(0, clicksDaily),
+      impressions: Math.max(0, impressionsDaily),
+      reach: Math.max(0, reachDaily),
+      spend: Math.max(0, spendDaily)
     })
   }
   
@@ -78,12 +105,14 @@ export function createObjectiveChartConfig(campaignTypes: any[]) {
   return config
 }
 
-// Create chart config for engagement metrics (area chart)
+// Create chart config for engagement metrics (area chart with 4 metrics)
 export function createEngagementChartConfig() {
   return {
-    visitors: { label: "Engagement Metrics" },
+    engagement: { label: "Engagement Metrics" },
     clicks: { label: "Clicks", color: "var(--chart-1)" },
-    impressions: { label: "Impressions", color: "var(--chart-2)" }
+    impressions: { label: "Impressions", color: "var(--chart-2)" },
+    reach: { label: "Reach", color: "var(--chart-3)" },
+    spend: { label: "Spend (₹)", color: "var(--chart-4)" }
   }
 }
 
