@@ -40,10 +40,10 @@ export default function DemographicsAnalysisPage() {
 
   // Calculate demographics insights from available data
   const demographicsData = analytics.demographics || { available: false }
-  const totalAudience = demographicsData.totalAudience || 6220
+  const totalAudience = demographicsData.totalAudience || 0
   const topAgeGroup = demographicsData.topPerformingAges?.[0] || null
   const primaryGender = demographicsData.primaryGender || null
-  const averageAge = demographicsData.averageAge || 32.5
+  const averageAge = demographicsData.averageAge || 0
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -96,7 +96,7 @@ export default function DemographicsAnalysisPage() {
           <CardContent>
             <div className="text-2xl font-bold">{topAgeGroup?.ageGroup || '25-34'}</div>
             <p className="text-xs text-muted-foreground">
-              {topAgeGroup?.percentage?.toFixed(1) || '32.6'}% of audience
+              {topAgeGroup?.percentage?.toFixed(1) || '0.0'}% of audience
             </p>
           </CardContent>
         </Card>
@@ -120,7 +120,7 @@ export default function DemographicsAnalysisPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{averageAge || 32.5}</div>
+            <div className="text-2xl font-bold">{averageAge || 0}</div>
             <p className="text-xs text-muted-foreground">
               Years old
             </p>
@@ -172,11 +172,11 @@ export default function DemographicsAnalysisPage() {
       )}
 
       {/* Gender Demographics Summary Cards */}
-      {demographicsData.genders && (
+      {demographicsData.genderData && (
         <div>
           <h2 className="text-xl font-semibold mb-4">Gender Distribution</h2>
           <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-            {Object.entries(demographicsData.genders).map(([gender, count], index) => (
+            {Object.entries(demographicsData.genderData).map(([gender, data], index) => (
               <Card key={gender}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base font-medium flex items-center gap-2">
@@ -191,15 +191,15 @@ export default function DemographicsAnalysisPage() {
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Count</span>
-                      <span className="font-semibold">{(count as number).toLocaleString()}</span>
+                      <span className="font-semibold">{data.count.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Spend</span>
-                      <span className="font-semibold">₹{gender === 'Female' ? '5,820' : '3,900'}</span>
+                      <span className="font-semibold">₹{data.spend.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Share</span>
-                      <span className="font-semibold">{gender === 'Female' ? '59.2' : '40.8'}%</span>
+                      <span className="font-semibold">{data.percentage}%</span>
                     </div>
                   </div>
                 </CardContent>

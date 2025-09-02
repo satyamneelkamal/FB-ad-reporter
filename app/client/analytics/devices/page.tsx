@@ -39,17 +39,15 @@ export default function DevicesAnalysisPage() {
   }
 
   // Calculate device insights from available data
-  const devicesData = analytics.devices || { available: false }
-  const totalDevices = devicesData.devices?.length || 0
-  const topDevice = devicesData.devices?.length > 0 ? 
-    [...devicesData.devices].sort((a, b) => b.spend - a.spend)[0] : null
-  const platformsData = analytics.platforms || { available: false }
-  const totalPlatforms = platformsData.platforms?.length || 0
-
-  // Calculate device metrics
-  const totalDeviceSpend = devicesData.devices?.reduce((sum, d) => sum + d.spend, 0) || 0
-  const mobileShare = devicesData.devices?.find(d => d.device.toLowerCase().includes('mobile'))?.percentage || 65.8
-  const averageCTR = devicesData.devices?.reduce((sum, d) => sum + (d.ctr || 0), 0) / (devicesData.devices?.length || 1) || 1.4
+  const devicesAndPlatforms = analytics.devicesAndPlatforms || { available: false }
+  
+  // Use calculated metrics from analytics instead of hardcoded values
+  const totalDevices = devicesAndPlatforms.deviceCount || 0
+  const topDevice = devicesAndPlatforms.topDevice || null
+  const totalPlatforms = devicesAndPlatforms.platforms?.length || 0
+  const totalDeviceSpend = devicesAndPlatforms.totalDeviceSpend || 0
+  const mobileShare = devicesAndPlatforms.mobileShare || 0
+  const averageCTR = devicesAndPlatforms.averageCTR || 0
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -87,7 +85,7 @@ export default function DevicesAnalysisPage() {
             <Monitor className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalDevices || 3}</div>
+            <div className="text-2xl font-bold">{totalDevices}</div>
             <p className="text-xs text-muted-foreground">
               Active devices
             </p>
@@ -102,7 +100,7 @@ export default function DevicesAnalysisPage() {
           <CardContent>
             <div className="text-2xl font-bold">{topDevice?.device || 'Mobile'}</div>
             <p className="text-xs text-muted-foreground">
-              ₹{topDevice?.spend || 6450} spend
+              ₹{topDevice?.spend ? Math.round(topDevice.spend).toLocaleString() : '0'} spend
             </p>
           </CardContent>
         </Card>
@@ -113,7 +111,7 @@ export default function DevicesAnalysisPage() {
             <Tablet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mobileShare.toFixed(1)}%</div>
+            <div className="text-2xl font-bold">{mobileShare > 0 ? mobileShare.toFixed(1) : '0.0'}%</div>
             <p className="text-xs text-muted-foreground">
               Of total spend
             </p>
@@ -126,7 +124,7 @@ export default function DevicesAnalysisPage() {
             <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{averageCTR.toFixed(2)}%</div>
+            <div className="text-2xl font-bold">{averageCTR > 0 ? averageCTR.toFixed(2) : '0.00'}%</div>
             <p className="text-xs text-muted-foreground">
               Across devices
             </p>
@@ -135,11 +133,11 @@ export default function DevicesAnalysisPage() {
       </div>
 
       {/* Device Performance Cards */}
-      {devicesData.devices && devicesData.devices.length > 0 && (
+      {devicesAndPlatforms.devices && devicesAndPlatforms.devices.length > 0 && (
         <div>
           <h2 className="text-xl font-semibold mb-4">Device Performance Breakdown</h2>
           <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {devicesData.devices.map((device, index) => (
+            {devicesAndPlatforms.devices.map((device, index) => (
               <Card key={device.device}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base font-medium flex items-center gap-2">
@@ -169,7 +167,7 @@ export default function DevicesAnalysisPage() {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">CTR</span>
-                      <span className="font-semibold">{device.ctr?.toFixed(2) || '1.40'}%</span>
+                      <span className="font-semibold">{device.ctr ? device.ctr.toFixed(2) : '0.00'}%</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Share</span>
@@ -184,11 +182,11 @@ export default function DevicesAnalysisPage() {
       )}
 
       {/* Platform Performance Cards */}
-      {platformsData.platforms && platformsData.platforms.length > 0 && (
+      {devicesAndPlatforms.platforms && devicesAndPlatforms.platforms.length > 0 && (
         <div>
           <h2 className="text-xl font-semibold mb-4">Platform Performance</h2>
           <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-            {platformsData.platforms.map((platform, index) => (
+            {devicesAndPlatforms.platforms.map((platform, index) => (
               <Card key={platform.platform}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base font-medium flex items-center gap-2">
@@ -211,7 +209,7 @@ export default function DevicesAnalysisPage() {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">CTR</span>
-                      <span className="font-semibold">{platform.ctr?.toFixed(2) || '1.40'}%</span>
+                      <span className="font-semibold">{platform.ctr ? platform.ctr.toFixed(2) : '0.00'}%</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Share</span>
@@ -316,7 +314,7 @@ export default function DevicesAnalysisPage() {
       )}
 
       {/* No Data State */}
-      {!analytics.loading && !devicesData.available && !platformsData.available && (
+      {!analytics.loading && !devicesAndPlatforms.available && (
         <Card>
           <CardContent className="text-center py-12">
             <Monitor className="h-12 w-12 text-muted-foreground mx-auto mb-4" />

@@ -34,11 +34,17 @@ export interface DemographicData {
   available: boolean
   ageGroups?: { [key: string]: number }
   genders?: { [key: string]: number }
+  genderData?: { [key: string]: { spend: number, count: number, percentage: number } }
   topPerformingAges?: Array<{
     ageGroup: string
     spend: number
+    count: number
+    actions: number
     percentage: number
   }>
+  primaryGender?: string
+  totalAudience?: number
+  averageAge?: number
 }
 
 export interface RegionalData {
@@ -136,12 +142,30 @@ export interface DevicePlatformData {
     device: string
     spend: number
     percentage: number
+    clicks?: number
+    impressions?: number
+    ctr?: number
+    cpc?: number
   }>
   platforms?: Array<{
     platform: string
     spend: number
     percentage: number
+    clicks?: number
+    impressions?: number
+    ctr?: number
+    cpc?: number
   }>
+  // Calculated metrics for the devices page
+  totalDeviceSpend?: number
+  mobileShare?: number
+  averageCTR?: number
+  topDevice?: {
+    device: string
+    spend: number
+    percentage: number
+  }
+  deviceCount?: number
 }
 
 export class FacebookAnalytics {
@@ -239,35 +263,119 @@ export class FacebookAnalytics {
     }
     
     const ageGroups: { [key: string]: number } = {}
+    const ageGroupsData: { [key: string]: { spend: number, reach: number, actions: number } } = {}
     const genders: { [key: string]: number } = {}
+    const genderCounts: { [key: string]: number } = {}
     let totalSpend = 0
+    let totalAudience = 0
+    let ageWeightedSum = 0
     
     demographics.forEach((demo: any) => {
       const spend = parseFloat(demo.spend || '0')
+      const reach = parseInt(demo.reach || '0')
       totalSpend += spend
+      totalAudience += reach
+      
+      // Count total actions from JSONB actions array
+      let totalActions = 0
+      if (demo.actions && Array.isArray(demo.actions)) {
+        totalActions = demo.actions.reduce((sum: number, action: any) => {
+          return sum + parseInt(action.value || '0')
+        }, 0)
+      }
       
       if (demo.age) {
         ageGroups[demo.age] = (ageGroups[demo.age] || 0) + spend
+        if (!ageGroupsData[demo.age]) {
+          ageGroupsData[demo.age] = { spend: 0, reach: 0, actions: 0 }
+        }
+        ageGroupsData[demo.age].spend += spend
+        ageGroupsData[demo.age].reach += reach
+        ageGroupsData[demo.age].actions += totalActions
+        
+        // Calculate age-weighted sum for average age calculation
+        const ageRange = demo.age
+        let ageValue = 30 // default
+        if (ageRange.includes('-')) {
+          const [minAge, maxAge] = ageRange.split('-').map(Number)
+          ageValue = (minAge + maxAge) / 2
+        } else if (ageRange.includes('+')) {
+          ageValue = parseInt(ageRange) + 5 // e.g., "65+" becomes 70
+        }
+        ageWeightedSum += ageValue * reach
       }
-      if (demo.gender) {
+      if (demo.gender && demo.gender !== 'unknown') {
         genders[demo.gender] = (genders[demo.gender] || 0) + spend
+        genderCounts[demo.gender] = (genderCounts[demo.gender] || 0) + reach
       }
     })
     
-    // Calculate top performing age groups
-    const topPerformingAges = Object.entries(ageGroups)
-      .map(([age, spend]) => ({
+    // Calculate top performing age groups with audience and actions data
+    const topPerformingAges = Object.entries(ageGroupsData)
+      .map(([age, data]) => ({
         ageGroup: age,
-        spend: spend as number,
-        percentage: totalSpend > 0 ? ((spend as number) / totalSpend) * 100 : 0
+        spend: data.spend,
+        count: data.reach, // Use reach as audience count
+        actions: data.actions, // Total actions for this age group
+        percentage: totalSpend > 0 ? (data.spend / totalSpend) * 100 : 0
       }))
       .sort((a, b) => b.spend - a.spend)
+    
+    // Calculate primary gender based on audience count (reach), not spend
+    const primaryGender = Object.entries(genderCounts).length > 0 
+      ? Object.entries(genderCounts)
+          .sort((a, b) => b[1] - a[1])[0][0] // Sort by count descending, take first
+          .toLowerCase().replace(/^\w/, c => c.toUpperCase()) // Capitalize first letter
+      : undefined
+    
+    // Calculate average age weighted by audience reach
+    const averageAge = totalAudience > 0 ? ageWeightedSum / totalAudience : undefined
+    
+    // Calculate gender data with spend, count, and share percentages
+    const totalGenderSpend = Object.values(genders).reduce((sum, spend) => sum + spend, 0)
+    const totalGenderCount = Object.values(genderCounts).reduce((sum, count) => sum + count, 0)
+    
+    const genderData: { [key: string]: { spend: number, count: number, percentage: number } } = {}
+    Object.keys(genders).forEach(gender => {
+      if (gender !== 'unknown') {
+        const spend = genders[gender] || 0
+        const count = genderCounts[gender] || 0
+        const percentage = totalGenderCount > 0 ? (count / totalGenderCount) * 100 : 0
+        
+        genderData[gender] = {
+          spend: Math.round(spend),
+          count,
+          percentage: Math.round(percentage * 10) / 10 // Round to 1 decimal
+        }
+      }
+    })
+    
+    // Add unknown if it exists
+    if (demographics.some(demo => demo.gender === 'unknown')) {
+      const unknownCount = demographics
+        .filter(demo => demo.gender === 'unknown')
+        .reduce((sum, demo) => sum + parseInt(demo.reach || '0'), 0)
+      const unknownSpend = demographics
+        .filter(demo => demo.gender === 'unknown')
+        .reduce((sum, demo) => sum + parseFloat(demo.spend || '0'), 0)
+      const unknownPercentage = totalGenderCount > 0 ? (unknownCount / (totalGenderCount + unknownCount)) * 100 : 0
+      
+      genderData['unknown'] = {
+        spend: Math.round(unknownSpend),
+        count: unknownCount,
+        percentage: Math.round(unknownPercentage * 10) / 10
+      }
+    }
     
     return {
       available: true,
       ageGroups,
       genders,
-      topPerformingAges
+      genderData,
+      topPerformingAges,
+      primaryGender,
+      totalAudience,
+      averageAge: averageAge ? Math.round(averageAge * 10) / 10 : undefined // Round to 1 decimal
     }
   }
 
@@ -465,10 +573,40 @@ export class FacebookAnalytics {
     const deviceData = devices?.length ? this.processDeviceArray(devices) : null
     const platformData = platforms?.length ? this.processPlatformArray(platforms) : null
     
+    // Calculate additional metrics for the devices page
+    const totalDeviceSpend = deviceData ? deviceData.reduce((sum, d) => sum + d.spend, 0) : 0
+    const deviceCount = deviceData ? deviceData.length : 0
+    
+    // Calculate mobile share based on actual device data
+    const mobileDevice = deviceData?.find(d => 
+      d.device.toLowerCase().includes('mobile') || 
+      d.device.toLowerCase().includes('mobile_app') ||
+      d.device.toLowerCase().includes('mobile_web')
+    )
+    const mobileShare = mobileDevice ? mobileDevice.percentage : 0
+    
+    // Calculate average CTR across all devices and platforms
+    const allDevicesWithCTR = [
+      ...(deviceData?.filter(d => d.ctr && d.ctr > 0) || []),
+      ...(platformData?.filter(p => p.ctr && p.ctr > 0) || [])
+    ]
+    const averageCTR = allDevicesWithCTR.length > 0 
+      ? allDevicesWithCTR.reduce((sum, item) => sum + item.ctr, 0) / allDevicesWithCTR.length
+      : 0
+    
+    // Find top device by spend
+    const topDevice = deviceData?.length > 0 ? 
+      [...deviceData].sort((a, b) => b.spend - a.spend)[0] : undefined
+    
     return {
       available: !!(deviceData || platformData),
       devices: deviceData || undefined,
-      platforms: platformData || undefined
+      platforms: platformData || undefined,
+      totalDeviceSpend,
+      mobileShare,
+      averageCTR,
+      topDevice,
+      deviceCount
     }
   }
 
@@ -477,10 +615,19 @@ export class FacebookAnalytics {
     
     return devices.map((device: any) => {
       const spend = parseFloat(device.spend || '0')
+      const clicks = parseInt(device.clicks || '0')
+      const impressions = parseInt(device.impressions || '0')
+      const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0
+      const cpc = clicks > 0 ? spend / clicks : 0
+      
       return {
-        device: device.device_type || device.device || 'Unknown',
+        device: device.device_platform || device.device_type || device.device || 'Unknown',
         spend,
-        percentage: totalSpend > 0 ? (spend / totalSpend) * 100 : 0
+        percentage: totalSpend > 0 ? (spend / totalSpend) * 100 : 0,
+        clicks,
+        impressions,
+        ctr,
+        cpc
       }
     }).sort((a, b) => b.spend - a.spend)
   }
@@ -490,10 +637,19 @@ export class FacebookAnalytics {
     
     return platforms.map((platform: any) => {
       const spend = parseFloat(platform.spend || '0')
+      const clicks = parseInt(platform.clicks || '0')
+      const impressions = parseInt(platform.impressions || '0')
+      const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0
+      const cpc = clicks > 0 ? spend / clicks : 0
+      
       return {
-        platform: platform.platform_position || platform.platform || 'Unknown',
+        platform: platform.publisher_platform || platform.platform_position || platform.platform || 'Unknown',
         spend,
-        percentage: totalSpend > 0 ? (spend / totalSpend) * 100 : 0
+        percentage: totalSpend > 0 ? (spend / totalSpend) * 100 : 0,
+        clicks,
+        impressions,
+        ctr,
+        cpc
       }
     }).sort((a, b) => b.spend - a.spend)
   }
