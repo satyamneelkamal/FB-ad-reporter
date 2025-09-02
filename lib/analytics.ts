@@ -642,8 +642,26 @@ export class FacebookAnalytics {
       const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0
       const cpc = clicks > 0 ? spend / clicks : 0
       
+      // Create descriptive platform name combining publisher and position
+      const publisherPlatform = platform.publisher_platform || 'Unknown'
+      const platformPosition = platform.platform_position || ''
+      
+      let platformName = publisherPlatform
+      if (platformPosition && platformPosition !== 'unknown' && platformPosition !== publisherPlatform) {
+        // Create readable platform names
+        const readablePosition = platformPosition
+          .replace(/_/g, ' ')
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ')
+          .replace('Facebook ', '')  // Remove redundant platform prefix
+          .replace('Instagram ', '') // Remove redundant platform prefix
+          
+        platformName = `${publisherPlatform.charAt(0).toUpperCase() + publisherPlatform.slice(1)} ${readablePosition}`
+      }
+      
       return {
-        platform: platform.publisher_platform || platform.platform_position || platform.platform || 'Unknown',
+        platform: platformName,
         spend,
         percentage: totalSpend > 0 ? (spend / totalSpend) * 100 : 0,
         clicks,
