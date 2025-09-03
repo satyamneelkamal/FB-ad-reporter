@@ -66,11 +66,25 @@ export function transformEngagementToLineChart(engagement: any) {
 export function transformObjectivesToPieChart(campaignTypes: any[]) {
   if (!campaignTypes?.length) return []
   
-  return campaignTypes.map((type, index) => ({
-    name: type.objective.replace(/_/g, ' '),
-    value: type.totalSpend,
-    fill: `var(--chart-${(index % 5) + 1})`
-  }))
+  return campaignTypes
+    // Sort by ROAS first (if available), then by spend
+    .sort((a, b) => {
+      const roasA = a.avgROAS || 0
+      const roasB = b.avgROAS || 0
+      if (roasA !== roasB) return roasB - roasA
+      return (b.totalSpend || 0) - (a.totalSpend || 0)
+    })
+    .map((type, index) => ({
+      name: type.objective.replace(/_/g, ' '),
+      value: type.totalSpend,
+      // Add ROAS context to display
+      roas: type.avgROAS,
+      conversions: type.totalConversions,
+      displayName: type.avgROAS ? 
+        `${type.objective.replace(/_/g, ' ')} (${type.avgROAS.toFixed(1)}x ROAS)` :
+        type.objective.replace(/_/g, ' '),
+      fill: `var(--chart-${(index % 5) + 1})`
+    }))
 }
 
 // Transform campaign data for bar chart (top campaigns by spend)

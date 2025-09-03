@@ -81,7 +81,7 @@ export default function AnalyticsDashboard() {
 
       {/* Key Metrics Cards */}
       <div className={`grid gap-4 ${
-        analytics.overview?.totalConversions ? 'md:grid-cols-2 lg:grid-cols-6' : 'md:grid-cols-2 lg:grid-cols-4'
+        analytics.overview?.totalConversions ? 'md:grid-cols-2 lg:grid-cols-4' : 'md:grid-cols-2'
       }`}>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -93,20 +93,7 @@ export default function AnalyticsDashboard() {
               ₹{analytics.overview?.totalSpend ? Math.round(analytics.overview.totalSpend).toLocaleString() : '0'}
             </div>
             <p className="text-xs text-muted-foreground">
-              Across all campaigns
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Campaigns</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.campaigns.length}</div>
-            <p className="text-xs text-muted-foreground">
-              {analytics.overview?.activeCampaigns || 0} active
+              {analytics.campaigns.length} campaigns
             </p>
           </CardContent>
         </Card>
@@ -121,22 +108,7 @@ export default function AnalyticsDashboard() {
               {analytics.engagement?.totalClicks?.toLocaleString() || '0'}
             </div>
             <p className="text-xs text-muted-foreground">
-              Total interactions
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Impressions</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {analytics.engagement?.totalImpressions?.toLocaleString() || '0'}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Total views
+              {analytics.engagement?.totalImpressions?.toLocaleString() || '0'} impressions
             </p>
           </CardContent>
         </Card>
@@ -146,13 +118,15 @@ export default function AnalyticsDashboard() {
           <>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Conversions</CardTitle>
+                <CardTitle className="text-sm font-medium">Revenue</CardTitle>
                 <Target className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{analytics.overview.totalConversions}</div>
+                <div className="text-2xl font-bold">
+                  ₹{analytics.overview?.totalConversionValue ? Math.round(analytics.overview.totalConversionValue).toLocaleString() : '0'}
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  Total purchases
+                  {analytics.overview.totalConversions} conversions
                 </p>
               </CardContent>
             </Card>
@@ -160,14 +134,22 @@ export default function AnalyticsDashboard() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Average ROAS</CardTitle>
-                <TrendingUp className="h-4 w-4 text-blue-600" />
+                <TrendingUp className={`h-4 w-4 ${
+                  analytics.overview?.averageROAS ? 
+                    analytics.overview.averageROAS >= 2 ? 'text-green-600' : 
+                    analytics.overview.averageROAS >= 1 ? 'text-blue-600' : 'text-orange-600'
+                  : 'text-muted-foreground'
+                }`} />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   {analytics.overview?.averageROAS ? analytics.overview.averageROAS.toFixed(2) : '0.00'}x
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Return on ad spend
+                  {analytics.overview?.costPerConversion ? 
+                    `₹${Math.round(analytics.overview.costPerConversion)} cost per conversion` :
+                    'Return on ad spend'
+                  }
                 </p>
               </CardContent>
             </Card>
@@ -305,18 +287,37 @@ export default function AnalyticsDashboard() {
                 <div className="font-medium text-foreground">Campaign Distribution</div>
                 <div className="text-muted-foreground mt-1">
                   {analytics.overview.activeCampaigns} active out of {analytics.overview.totalCampaigns} total campaigns
+                  {analytics.overview?.totalConversions && (
+                    <> • {analytics.overview.totalConversions} total conversions</>
+                  )}
                 </div>
               </div>
               <div>
-                <div className="font-medium text-foreground">Ad Volume</div>
+                <div className="font-medium text-foreground">ROI Performance</div>
                 <div className="text-muted-foreground mt-1">
-                  {analytics.overview.totalAds} ads across all campaigns
+                  {analytics.overview?.averageROAS ? (
+                    <>
+                      {analytics.overview.averageROAS >= 2 ? (
+                        <span className="text-green-600">Excellent ROAS: {analytics.overview.averageROAS.toFixed(2)}x</span>
+                      ) : analytics.overview.averageROAS >= 1 ? (
+                        <span className="text-blue-600">Good ROAS: {analytics.overview.averageROAS.toFixed(2)}x</span>
+                      ) : (
+                        <span className="text-orange-600">Low ROAS: {analytics.overview.averageROAS.toFixed(2)}x</span>
+                      )}
+                    </>
+                  ) : (
+                    `${analytics.overview.totalAds} ads across all campaigns`
+                  )}
                 </div>
               </div>
               <div>
-                <div className="font-medium text-foreground">Objectives</div>
+                <div className="font-medium text-foreground">Revenue Potential</div>
                 <div className="text-muted-foreground mt-1">
-                  {analytics.campaignTypes.length} different campaign objectives
+                  {analytics.overview?.totalConversionValue ? (
+                    <>₹{Math.round(analytics.overview.totalConversionValue).toLocaleString()} monthly conversion value</>
+                  ) : (
+                    `${analytics.campaignTypes.length} different campaign objectives`
+                  )}
                 </div>
               </div>
             </div>

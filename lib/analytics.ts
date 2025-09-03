@@ -845,13 +845,20 @@ export class FacebookAnalytics {
         acc[objective] = {
           campaigns: [],
           totalSpend: 0,
+          totalConversions: 0,
+          totalConversionValue: 0,
           count: 0
         }
       }
       
       const spend = parseFloat(campaign.spend || '0')
+      const conversions = this.extractConversions(campaign.actions) || 0
+      const conversionValue = this.extractConversionValue(campaign.action_values, campaign.purchase_roas, spend) || 0
+      
       acc[objective].campaigns.push(campaign)
       acc[objective].totalSpend += spend
+      acc[objective].totalConversions += conversions
+      acc[objective].totalConversionValue += conversionValue
       acc[objective].count++
       
       return acc
@@ -866,16 +873,27 @@ export class FacebookAnalytics {
       else if (activeCampaigns === 0) status = 'Inactive'
       else status = 'Mixed'
       
+      const avgROAS = data.totalSpend > 0 ? data.totalConversionValue / data.totalSpend : 0
+      
       return {
         objective,
         campaigns: data.campaigns,
         totalSpend: data.totalSpend,
+        totalConversions: data.totalConversions,
+        totalConversionValue: data.totalConversionValue,
+        avgROAS,
         count: data.count,
         avgSpend: data.totalSpend / data.count,
         percentage: totalSpend > 0 ? (data.totalSpend / totalSpend) * 100 : 0,
         status
       }
-    }).sort((a, b) => b.totalSpend - a.totalSpend)
+    }).sort((a, b) => {
+      // Sort by ROAS first (if both have ROAS data), then by total spend
+      if (a.avgROAS > 0 && b.avgROAS > 0) return b.avgROAS - a.avgROAS
+      if (a.avgROAS > 0) return -1
+      if (b.avgROAS > 0) return 1
+      return b.totalSpend - a.totalSpend
+    })
   }
 
   /**
@@ -1085,35 +1103,72 @@ export class FacebookAnalytics {
       : campaigns?.reduce((sum: number, c: any) => sum + parseFloat(c.spend || '0'), 0) || 0
     
     // Create audience segments by combining demographics and regional data
-    const audienceSegments = demographics?.length ? demographics.map((demo: any) => ({
-      age: demo.age || 'Unknown',
-      gender: demo.gender || 'Unknown',
-      spend: parseFloat(demo.spend || '0'),
-      clicks: parseInt(demo.clicks || '0'),
-      ctr: parseFloat(demo.ctr || '0'),
-      cpc: parseFloat(demo.cpc || '0')
-    })) : []
+    const audienceSegments = demographics?.length ? demographics.map((demo: any) => {
+      const spend = parseFloat(demo.spend || '0')
+      const conversions = this.extractConversions(demo.actions) || 0
+      const conversionValue = this.extractConversionValue(demo.action_values, demo.purchase_roas, spend) || 0
+      const roas = spend > 0 ? conversionValue / spend : 0
+      const clicks = parseInt(demo.clicks || '0')
+      const conversionRate = clicks > 0 ? (conversions / clicks) * 100 : 0
+      
+      return {
+        age: demo.age || 'Unknown',
+        gender: demo.gender || 'Unknown',
+        spend,
+        clicks,
+        ctr: parseFloat(demo.ctr || '0'),
+        cpc: parseFloat(demo.cpc || '0'),
+        conversions,
+        roas,
+        conversionRate
+      }
+    }) : []
 
-    // Find top performing segments (by CTR and spend combination)
+    // Find top performing segments (by ROAS first, then CTR and spend combination)
     const topSegments = audienceSegments
-      .filter(segment => segment.spend > 0 && segment.ctr > 0)
+      .filter(segment => segment.spend > 0)
       .sort((a, b) => {
-        // Score based on CTR and spend volume
-        const scoreA = a.ctr * Math.log(a.spend + 1)
-        const scoreB = b.ctr * Math.log(b.spend + 1)
-        return scoreB - scoreA
+        // Prioritize segments with ROAS data
+        if (a.roas > 0 && b.roas > 0) return b.roas - a.roas
+        if (a.roas > 0) return -1
+        if (b.roas > 0) return 1
+        
+        // Fallback to CTR and spend combination for segments without ROAS
+        if (a.ctr > 0 && b.ctr > 0) {
+          const scoreA = a.ctr * Math.log(a.spend + 1)
+          const scoreB = b.ctr * Math.log(b.spend + 1)
+          return scoreB - scoreA
+        }
+        
+        return b.spend - a.spend
       })
       .slice(0, 5)
 
     // Regional performance insights
     const topRegions = regional?.length ? regional
-      .map((region: any) => ({
-        region: region.region || 'Unknown',
-        spend: parseFloat(region.spend || '0'),
-        clicks: parseInt(region.clicks || '0'),
-        ctr: parseFloat(region.ctr || '0')
-      }))
-      .sort((a, b) => b.ctr - a.ctr)
+      .map((region: any) => {
+        const spend = parseFloat(region.spend || '0')
+        const conversions = this.extractConversions(region.actions) || 0
+        const conversionValue = this.extractConversionValue(region.action_values, region.purchase_roas, spend) || 0
+        const roas = spend > 0 ? conversionValue / spend : 0
+        
+        return {
+          region: region.region || 'Unknown',
+          spend,
+          clicks: parseInt(region.clicks || '0'),
+          ctr: parseFloat(region.ctr || '0'),
+          conversions,
+          roas,
+          conversionValue
+        }
+      })
+      .sort((a, b) => {
+        // Sort by ROAS first, then by CTR
+        if (a.roas > 0 && b.roas > 0) return b.roas - a.roas
+        if (a.roas > 0) return -1
+        if (b.roas > 0) return 1
+        return b.ctr - a.ctr
+      })
       .slice(0, 3) : []
 
     // Campaign objective insights
@@ -1157,23 +1212,56 @@ export class FacebookAnalytics {
     
     if (topSegments.length > 0) {
       const bestSegment = topSegments[0]
-      recommendations.push({
-        type: 'scale',
-        title: `Scale ${bestSegment.age} ${bestSegment.gender} segment`,
-        description: `High CTR (${bestSegment.ctr.toFixed(2)}%) with good volume`,
-        impact: 'High',
-        action: 'Increase budget allocation'
-      })
+      if (bestSegment.roas > 0) {
+        recommendations.push({
+          type: 'scale',
+          title: `Scale ${bestSegment.age} ${bestSegment.gender} segment`,
+          description: `Excellent ROAS (${bestSegment.roas.toFixed(2)}x) with ${bestSegment.conversions} conversions`,
+          impact: bestSegment.roas >= 3 ? 'High' : bestSegment.roas >= 2 ? 'Medium' : 'Low',
+          action: 'Increase budget allocation by 50%'
+        })
+      } else {
+        recommendations.push({
+          type: 'scale',
+          title: `Scale ${bestSegment.age} ${bestSegment.gender} segment`,
+          description: `High CTR (${bestSegment.ctr.toFixed(2)}%) with good volume`,
+          impact: 'High',
+          action: 'Increase budget allocation'
+        })
+      }
     }
     
     if (topRegions.length > 0) {
       const bestRegion = topRegions[0]
+      if (bestRegion.roas > 0) {
+        recommendations.push({
+          type: 'geographic',
+          title: `Focus on ${bestRegion.region}`,
+          description: `Top regional ROAS (${bestRegion.roas.toFixed(2)}x) with ₹${Math.round(bestRegion.conversionValue)} revenue`,
+          impact: bestRegion.roas >= 2 ? 'High' : 'Medium',
+          action: 'Shift 30% more budget to this region'
+        })
+      } else {
+        recommendations.push({
+          type: 'geographic',
+          title: `Focus on ${bestRegion.region}`,
+          description: `Best regional CTR at ${bestRegion.ctr.toFixed(2)}%`,
+          impact: 'Medium',
+          action: 'Expand regional targeting'
+        })
+      }
+    }
+
+    // Add ROI-based recommendations for optimization
+    const lowROASSegments = topSegments.filter(segment => segment.roas > 0 && segment.roas < 1)
+    if (lowROASSegments.length > 0) {
+      const worstSegment = lowROASSegments[lowROASSegments.length - 1]
       recommendations.push({
-        type: 'geographic',
-        title: `Focus on ${bestRegion.region}`,
-        description: `Best regional CTR at ${bestRegion.ctr.toFixed(2)}%`,
+        type: 'optimize',
+        title: `Optimize ${worstSegment.age} ${worstSegment.gender} segment`,
+        description: `Low ROAS (${worstSegment.roas.toFixed(2)}x) - consider pausing or improving creative`,
         impact: 'Medium',
-        action: 'Expand regional targeting'
+        action: 'Reduce budget or improve targeting'
       })
     }
 

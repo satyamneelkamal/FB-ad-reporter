@@ -14,12 +14,18 @@ interface AudienceProfileData {
     clicks: number
     ctr: number
     cpc: number
+    conversions?: number
+    roas?: number
+    conversionRate?: number
   }>
   topRegions?: Array<{
     region: string
     spend: number
     clicks: number
     ctr: number
+    conversions?: number
+    roas?: number
+    conversionValue?: number
   }>
   topObjectives?: Array<{
     objective: string
@@ -166,20 +172,38 @@ export function SmartAudienceProfiler({ audienceData }: SmartAudienceProfilerPro
                 Top Performing Segments
               </CardTitle>
               <CardDescription>
-                Best audience demographics by engagement and spend
+                Best audience demographics by conversion performance and ROI
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {topSegments.slice(0, 3).map((segment, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <div>
+                    <div className="flex-1">
                       <div className="font-medium">{segment.age} {segment.gender}</div>
                       <div className="text-sm text-muted-foreground">
-                        CTR: {segment.ctr.toFixed(2)}% • CPC: ₹{segment.cpc.toFixed(2)}
+                        {segment.roas ? (
+                          <>ROAS: {segment.roas.toFixed(2)}x • {segment.conversions || 0} conversions</>
+                        ) : (
+                          <>CTR: {segment.ctr.toFixed(2)}% • CPC: ₹{segment.cpc.toFixed(2)}</>
+                        )}
                       </div>
                     </div>
-                    <Badge variant="secondary">₹{Math.round(segment.spend)}</Badge>
+                    <div className="text-right">
+                      {segment.roas && segment.roas >= 2 ? (
+                        <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                          ₹{Math.round(segment.spend)}
+                        </Badge>
+                      ) : segment.roas && segment.roas >= 1 ? (
+                        <Badge variant="secondary">₹{Math.round(segment.spend)}</Badge>
+                      ) : segment.roas ? (
+                        <Badge variant="outline" className="border-orange-200 text-orange-600">
+                          ₹{Math.round(segment.spend)}
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">₹{Math.round(segment.spend)}</Badge>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -225,20 +249,38 @@ export function SmartAudienceProfiler({ audienceData }: SmartAudienceProfilerPro
                 High-Performance Regions
               </CardTitle>
               <CardDescription>
-                Geographic areas with best engagement rates
+                Geographic areas with best conversion performance and ROI
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {topRegions.map((region, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <div>
+                    <div className="flex-1">
                       <div className="font-medium">{region.region}</div>
                       <div className="text-sm text-muted-foreground">
-                        {region.clicks.toLocaleString()} clicks • {region.ctr.toFixed(2)}% CTR
+                        {region.roas ? (
+                          <>ROAS: {region.roas.toFixed(2)}x • ₹{Math.round(region.conversionValue || 0)} revenue</>
+                        ) : (
+                          <>{region.clicks.toLocaleString()} clicks • {region.ctr.toFixed(2)}% CTR</>
+                        )}
                       </div>
                     </div>
-                    <Badge variant="outline">₹{Math.round(region.spend)}</Badge>
+                    <div className="text-right">
+                      {region.roas && region.roas >= 2 ? (
+                        <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                          ₹{Math.round(region.spend)}
+                        </Badge>
+                      ) : region.roas && region.roas >= 1 ? (
+                        <Badge variant="secondary">₹{Math.round(region.spend)}</Badge>
+                      ) : region.roas ? (
+                        <Badge variant="outline" className="border-orange-200 text-orange-600">
+                          ₹{Math.round(region.spend)}
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline">₹{Math.round(region.spend)}</Badge>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
