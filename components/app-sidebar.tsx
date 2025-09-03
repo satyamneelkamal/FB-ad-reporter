@@ -23,6 +23,7 @@ import {
   IconMap,
   IconDevices,
   IconChartPie,
+  IconTrendingUp,
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -61,6 +62,7 @@ const iconMap: { [key: string]: any } = {
   IconMap,
   IconDevices,
   IconChartPie,
+  IconTrendingUp,
 }
 
 // Default data (fallback)
