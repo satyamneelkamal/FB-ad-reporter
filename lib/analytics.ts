@@ -450,8 +450,13 @@ export class FacebookAnalytics {
     })
     
     const averageROAS = roasCount > 0 ? totalROAS / roasCount : 0
-    const costPerConversion = totalConversions > 0 ? 
-      (campaigns.reduce((sum, c) => sum + parseFloat(c.spend || '0'), 0) / totalConversions) : 0
+    
+    // Calculate cost per conversion using total spend from demographics (where real spend is recorded)
+    const totalSpendForCostCalc = demographics.length > 0 
+      ? demographics.reduce((sum, demo) => sum + parseFloat(demo.spend || '0'), 0)
+      : campaigns.reduce((sum, c) => sum + parseFloat(c.spend || '0'), 0)
+    
+    const costPerConversion = totalConversions > 0 ? totalSpendForCostCalc / totalConversions : 0
     
     return {
       totalConversions,
@@ -1558,7 +1563,11 @@ export class FacebookAnalytics {
     
     // Calculate overall ROI metrics
     const overallMetrics = this.calculateROIMetrics(campaigns, demographics, adLevel)
-    const totalSpend = campaigns.reduce((sum: number, c: any) => sum + parseFloat(c.spend || '0'), 0)
+    
+    // Use demographics spend (where real spend is recorded) instead of campaigns
+    const totalSpend = demographics.length > 0 
+      ? demographics.reduce((sum: number, d: any) => sum + parseFloat(d.spend || '0'), 0)
+      : campaigns.reduce((sum: number, c: any) => sum + parseFloat(c.spend || '0'), 0)
     
     // Campaign-level ROI analysis
     const campaignROI = campaigns
