@@ -11,9 +11,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { RefreshCw, AlertCircle, MapPin, Globe, TrendingUp, Users } from "lucide-react"
+import { AnalyticsLoading } from "@/components/analytics-loading"
 
 export default function RegionalAnalysisPage() {
   const analytics = useAnalytics()
+
+  if (analytics.loading) {
+    return <AnalyticsLoading cardCount={3} />
+  }
 
   if (analytics.error) {
     return (

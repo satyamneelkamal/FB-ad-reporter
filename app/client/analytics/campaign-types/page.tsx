@@ -12,9 +12,14 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { RefreshCw, AlertCircle, Target, TrendingUp, Users, BarChart3 } from "lucide-react"
+import { AnalyticsLoading } from "@/components/analytics-loading"
 
 export default function CampaignTypesPage() {
   const analytics = useAnalytics()
+
+  if (analytics.loading) {
+    return <AnalyticsLoading cardCount={3} />
+  }
 
   if (analytics.error) {
     return (

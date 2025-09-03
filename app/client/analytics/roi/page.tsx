@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { RefreshCw, AlertCircle, ArrowUpDown, TrendingUp, TrendingDown, DollarSign, Target } from "lucide-react"
+import { AnalyticsLoading } from "@/components/analytics-loading"
 import { useState } from 'react'
 import { CampaignROIChart, ObjectiveROIChart } from "@/components/charts/roi-chart"
 
@@ -41,6 +42,10 @@ export default function ROIAnalysisPage() {
     
     return sortOrder === 'asc' ? aVal - bVal : bVal - aVal
   }) : []
+
+  if (analytics.loading) {
+    return <AnalyticsLoading cardCount={4} />
+  }
 
   if (analytics.error) {
     return (

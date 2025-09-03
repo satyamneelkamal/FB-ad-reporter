@@ -10,9 +10,14 @@ import { useAnalytics } from '@/hooks/useAnalytics'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { RefreshCw, AlertCircle, MousePointer, Eye, Heart, TrendingUp } from "lucide-react"
+import { AnalyticsLoading } from "@/components/analytics-loading"
 
 export default function EngagementMetricsPage() {
   const analytics = useAnalytics()
+
+  if (analytics.loading) {
+    return <AnalyticsLoading cardCount={4} />
+  }
 
   if (analytics.error) {
     return (

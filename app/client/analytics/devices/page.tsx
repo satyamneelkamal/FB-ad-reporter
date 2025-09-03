@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { RefreshCw, AlertCircle, Smartphone, Monitor, Tablet, Globe, ArrowUpDown } from "lucide-react"
+import { AnalyticsLoading } from "@/components/analytics-loading"
 import { useState } from 'react'
 
 export default function DevicesAnalysisPage() {
@@ -66,6 +67,10 @@ export default function DevicesAnalysisPage() {
       const bStr = String(bVal).toLowerCase()
       return sortOrder === 'asc' ? aStr.localeCompare(bStr) : bStr.localeCompare(aStr)
     })
+  }
+
+  if (analytics.loading) {
+    return <AnalyticsLoading showCharts={false} cardCount={2} />
   }
 
   if (analytics.error) {

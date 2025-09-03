@@ -15,6 +15,7 @@ import { ChartPieSeparatorNone } from "@/components/charts/pie-chart"
 import { ChartBarLabelCustom } from "@/components/charts/bar-chart"
 import { CampaignROIChart } from "@/components/charts/roi-chart"
 import { SmartAudienceProfiler } from "@/components/SmartAudienceProfiler"
+import { AnalyticsLoading } from "@/components/analytics-loading"
 import { 
   transformEngagementToLineChart, 
   transformObjectivesToPieChart, 
@@ -26,6 +27,10 @@ import {
 
 export default function AnalyticsDashboard() {
   const analytics = useAnalytics()
+
+  if (analytics.loading) {
+    return <AnalyticsLoading cardCount={4} />
+  }
 
   if (analytics.error) {
     return (

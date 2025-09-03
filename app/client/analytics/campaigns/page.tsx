@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { RefreshCw, AlertCircle, ArrowUpDown, TrendingUp, DollarSign } from "lucide-react"
+import { AnalyticsLoading } from "@/components/analytics-loading"
 import { useState } from 'react'
 
 export default function CampaignPerformancePage() {
@@ -48,6 +49,10 @@ export default function CampaignPerformancePage() {
     const bStr = String(bVal).toLowerCase()
     return sortOrder === 'asc' ? aStr.localeCompare(bStr) : bStr.localeCompare(aStr)
   })
+
+  if (analytics.loading) {
+    return <AnalyticsLoading showCharts={false} cardCount={3} />
+  }
 
   if (analytics.error) {
     return (
