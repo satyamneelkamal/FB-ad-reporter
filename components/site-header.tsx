@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { ModeToggle } from "@/components/mode-toggle"
+import { AnimatedThemeToggler } from "@/components/magicui/animated-theme-toggler"
 import Image from "next/image"
 
 export function SiteHeader() {
@@ -15,7 +15,7 @@ export function SiteHeader() {
         />
         <h1 className="text-base font-medium">Documents</h1>
         <div className="ml-auto flex items-center gap-2">
-          <ModeToggle />
+          <AnimatedThemeToggler className="p-2 hover:bg-accent hover:text-accent-foreground rounded-md transition-colors" />
         </div>
       </div>
     </header>
