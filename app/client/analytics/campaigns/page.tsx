@@ -11,15 +11,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { RefreshCw, AlertCircle, ArrowUpDown } from "lucide-react"
+import { RefreshCw, AlertCircle, ArrowUpDown, TrendingUp, DollarSign } from "lucide-react"
 import { useState } from 'react'
 
 export default function CampaignPerformancePage() {
   const analytics = useAnalytics()
-  const [sortBy, setSortBy] = useState<'spend' | 'name' | 'objective'>('spend')
+  const [sortBy, setSortBy] = useState<'spend' | 'name' | 'objective' | 'roas' | 'conversions'>('spend')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
-  const handleSort = (field: 'spend' | 'name' | 'objective') => {
+  const handleSort = (field: 'spend' | 'name' | 'objective' | 'roas' | 'conversions') => {
     if (sortBy === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
     } else {
@@ -29,8 +29,16 @@ export default function CampaignPerformancePage() {
   }
 
   const sortedCampaigns = [...analytics.campaigns].sort((a, b) => {
-    const aVal = sortBy === 'spend' ? a.spend : sortBy === 'name' ? a.name : a.objective
-    const bVal = sortBy === 'spend' ? b.spend : sortBy === 'name' ? b.name : b.objective
+    const aVal = sortBy === 'spend' ? a.spend : 
+                 sortBy === 'name' ? a.name : 
+                 sortBy === 'objective' ? a.objective :
+                 sortBy === 'roas' ? (a.roas || 0) :
+                 sortBy === 'conversions' ? (a.conversions || 0) : a.spend
+    const bVal = sortBy === 'spend' ? b.spend : 
+                 sortBy === 'name' ? b.name : 
+                 sortBy === 'objective' ? b.objective :
+                 sortBy === 'roas' ? (b.roas || 0) :
+                 sortBy === 'conversions' ? (b.conversions || 0) : b.spend
     
     if (typeof aVal === 'number' && typeof bVal === 'number') {
       return sortOrder === 'asc' ? aVal - bVal : bVal - aVal
@@ -94,7 +102,7 @@ export default function CampaignPerformancePage() {
       </div>
 
       {/* Campaign Overview Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-6">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total Campaigns</CardTitle>
@@ -149,6 +157,43 @@ export default function CampaignPerformancePage() {
             </p>
           </CardContent>
         </Card>
+
+        {/* ROI Metrics - Only show if ROI data is available */}
+        {analytics.overview?.totalConversions && analytics.overview.totalConversions > 0 && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-1">
+                <DollarSign className="h-3 w-3" />
+                Conversions
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{analytics.overview.totalConversions}</div>
+              <p className="text-xs text-muted-foreground">
+                Total purchases
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {analytics.overview?.averageROAS && analytics.overview.averageROAS > 0 && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-1">
+                <TrendingUp className="h-3 w-3" />
+                Avg ROAS
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {analytics.overview.averageROAS.toFixed(2)}x
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Return on ad spend
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Campaign Objectives Summary Cards */}
@@ -225,6 +270,31 @@ export default function CampaignPerformancePage() {
                 <TableHead>Status</TableHead>
                 <TableHead>Duration</TableHead>
                 <TableHead>Buying Type</TableHead>
+                {/* ROI Columns - Show if any campaign has ROI data */}
+                {analytics.campaigns.some(c => c.roas || c.conversions) && (
+                  <>
+                    <TableHead>
+                      <Button 
+                        variant="ghost" 
+                        onClick={() => handleSort('roas')}
+                        className="h-auto p-0 font-medium flex items-center gap-1"
+                      >
+                        ROAS
+                        <ArrowUpDown className="h-3 w-3" />
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button 
+                        variant="ghost" 
+                        onClick={() => handleSort('conversions')}
+                        className="h-auto p-0 font-medium flex items-center gap-1"
+                      >
+                        Conversions
+                        <ArrowUpDown className="h-3 w-3" />
+                      </Button>
+                    </TableHead>
+                  </>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -237,6 +307,13 @@ export default function CampaignPerformancePage() {
                     <TableCell><div className="h-4 bg-muted animate-pulse rounded" /></TableCell>
                     <TableCell><div className="h-4 bg-muted animate-pulse rounded" /></TableCell>
                     <TableCell><div className="h-4 bg-muted animate-pulse rounded" /></TableCell>
+                    {/* Add ROI skeleton columns if needed */}
+                    {analytics.campaigns.some(c => c.roas || c.conversions) && (
+                      <>
+                        <TableCell><div className="h-4 bg-muted animate-pulse rounded" /></TableCell>
+                        <TableCell><div className="h-4 bg-muted animate-pulse rounded" /></TableCell>
+                      </>
+                    )}
                   </TableRow>
                 ))
               ) : (
@@ -270,6 +347,34 @@ export default function CampaignPerformancePage() {
                         {campaign.buyingType || 'N/A'}
                       </span>
                     </TableCell>
+                    {/* ROI Data Cells - Show if any campaign has ROI data */}
+                    {analytics.campaigns.some(c => c.roas || c.conversions) && (
+                      <>
+                        <TableCell className="font-mono text-right">
+                          {campaign.roas && campaign.roas > 0 ? (
+                            <div className="flex items-center gap-1 justify-end">
+                              {campaign.roas > 2 ? (
+                                <TrendingUp className="h-3 w-3 text-green-600" />
+                              ) : campaign.roas < 1 ? (
+                                <div className="h-3 w-3 rotate-180">
+                                  <TrendingUp className="h-3 w-3 text-red-600" />
+                                </div>
+                              ) : null}
+                              {campaign.roas.toFixed(2)}x
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="font-mono text-right">
+                          {campaign.conversions && campaign.conversions > 0 ? (
+                            campaign.conversions
+                          ) : (
+                            <span className="text-muted-foreground text-sm">-</span>
+                          )}
+                        </TableCell>
+                      </>
+                    )}
                   </TableRow>
                 ))
               )}

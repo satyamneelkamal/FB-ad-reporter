@@ -85,7 +85,17 @@ export async function GET(request: NextRequest) {
     console.log(`✅ Analytics generated from separated tables:
     - Total Spend: $${analytics.overview?.totalSpend?.toFixed(2) || '0.00'}
     - Active Campaigns: ${analytics.overview?.activeCampaigns || 0}
-    - Data Types Available: ${Object.keys(analytics.dataAvailability || {}).length}`)
+    - Data Types Available: ${Object.keys(analytics.dataAvailability || {}).length}
+    - ROI Available: ${analytics.roi?.available ? 'YES' : 'NO'}
+    - ROI Campaigns: ${analytics.roi?.campaignROI?.length || 0}`)
+    
+    // Debug: Log ROI data structure
+    console.log('🔍 ROI Debug:', {
+      roiAvailable: analytics.roi?.available,
+      campaignROICount: analytics.roi?.campaignROI?.length,
+      overallROAS: analytics.roi?.overallROAS,
+      totalConversions: analytics.roi?.totalConversions
+    })
 
     return NextResponse.json({
       success: true,

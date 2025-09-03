@@ -13,6 +13,7 @@ import { RefreshCw, AlertCircle, TrendingUp, Users, Target, DollarSign } from "l
 import { ChartAreaInteractive } from "@/components/charts/area-chart" 
 import { ChartPieSeparatorNone } from "@/components/charts/pie-chart"
 import { ChartBarLabelCustom } from "@/components/charts/bar-chart"
+import { CampaignROIChart } from "@/components/charts/roi-chart"
 import { SmartAudienceProfiler } from "@/components/SmartAudienceProfiler"
 import { 
   transformEngagementToLineChart, 
@@ -79,7 +80,9 @@ export default function AnalyticsDashboard() {
       </div>
 
       {/* Key Metrics Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className={`grid gap-4 ${
+        analytics.overview?.totalConversions ? 'md:grid-cols-2 lg:grid-cols-6' : 'md:grid-cols-2 lg:grid-cols-4'
+      }`}>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Spend</CardTitle>
@@ -137,35 +140,121 @@ export default function AnalyticsDashboard() {
             </p>
           </CardContent>
         </Card>
+
+        {/* ROI Metrics - Only show if conversion data is available */}
+        {analytics.overview?.totalConversions && analytics.overview.totalConversions > 0 && (
+          <>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Conversions</CardTitle>
+                <Target className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{analytics.overview.totalConversions}</div>
+                <p className="text-xs text-muted-foreground">
+                  Total purchases
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Average ROAS</CardTitle>
+                <TrendingUp className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {analytics.overview?.averageROAS ? analytics.overview.averageROAS.toFixed(2) : '0.00'}x
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Return on ad spend
+                </p>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       {/* Charts Section */}
       {!analytics.loading && (
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* Performance Trend Chart */}
-          <div className="col-span-full md:col-span-2">
-            <ChartAreaInteractive 
-              data={transformEngagementToLineChart(analytics.engagement)}
-              config={createEngagementChartConfig()}
-              title="Engagement Performance"
-              description="Facebook Ads clicks, impressions, reach, and spend trends over time with dual Y-axis"
+        <div className="space-y-4">
+          {/* Main Charts Grid */}
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Performance Trend Chart */}
+            <div className="col-span-full md:col-span-2">
+              <ChartAreaInteractive 
+                data={transformEngagementToLineChart(analytics.engagement)}
+                config={createEngagementChartConfig()}
+                title="Engagement Performance"
+                description="Facebook Ads clicks, impressions, reach, and spend trends over time with dual Y-axis"
+              />
+            </div>
+
+            {/* Campaign Objectives Pie Chart */}
+            <ChartPieSeparatorNone 
+              data={transformObjectivesToPieChart(analytics.campaignTypes)}
+              config={createObjectiveChartConfig(analytics.campaignTypes)}
+              title="Campaign Objectives"
+              description="Spend distribution by objective type"
+            />
+
+            {/* Top Campaigns Bar Chart */}
+            <ChartBarLabelCustom 
+              data={analytics.regional?.regions || []}
+              title="Top Regional Performance"
+              description="Regions with highest click engagement"
             />
           </div>
 
-          {/* Campaign Objectives Pie Chart */}
-          <ChartPieSeparatorNone 
-            data={transformObjectivesToPieChart(analytics.campaignTypes)}
-            config={createObjectiveChartConfig(analytics.campaignTypes)}
-            title="Campaign Objectives"
-            description="Spend distribution by objective type"
-          />
-
-          {/* Top Campaigns Bar Chart */}
-          <ChartBarLabelCustom 
-            data={analytics.regional?.regions || []}
-            title="Top Regional Performance"
-            description="Regions with highest click engagement"
-          />
+          {/* ROI Charts - Only show if ROI data is available */}
+          {analytics.roi?.available && analytics.roi.campaignROI && analytics.roi.campaignROI.length > 0 && (
+            <div className="grid gap-4 md:grid-cols-2">
+              <CampaignROIChart data={analytics.roi.campaignROI} />
+              {analytics.roi.objectiveROI && analytics.roi.objectiveROI.length > 0 && (
+                <div className="md:col-span-1">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <DollarSign className="h-5 w-5" />
+                        ROI Summary
+                      </CardTitle>
+                      <CardDescription>Quick ROI performance overview</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Overall ROAS</span>
+                          <span className="text-lg font-semibold">
+                            {analytics.roi.overallROAS?.toFixed(2) || '0.00'}x
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Total Revenue</span>
+                          <span className="text-lg font-semibold">
+                            ₹{Math.round(analytics.roi.totalConversionValue || 0).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Total Conversions</span>
+                          <span className="text-lg font-semibold">
+                            {analytics.roi.totalConversions || 0}
+                          </span>
+                        </div>
+                        {analytics.roi.insights?.bestPerformingCampaign && (
+                          <div className="pt-2 border-t">
+                            <p className="text-sm text-muted-foreground">Best Campaign:</p>
+                            <p className="text-sm font-medium truncate">
+                              {analytics.roi.insights.bestPerformingCampaign}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

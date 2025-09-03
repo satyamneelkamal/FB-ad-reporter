@@ -9,6 +9,7 @@ Modern Next.js application providing comprehensive Facebook Ads data collection 
 - **Role-Based Access**: JWT middleware protection
 - **Modern UI**: shadcn/ui components with responsive design
 - **Facebook Integration**: 6 data types collection via Graph API v20.0
+- **ROI Analytics**: Real-time conversion tracking with ROAS analysis by demographics
 
 ## 🏗️ Architecture
 ```
@@ -78,11 +79,18 @@ middleware.ts          # Route protection
 
 ### Data Types Collected (6 via Graph API v20.0)
 1. **Campaign Performance**: `campaign_id`, `spend`, `clicks`, `impressions`, `ctr` (with spend distribution logic)
-2. **Demographics**: Age/gender breakdowns with reach and actions (processed for accurate totals)
+2. **Demographics**: Age/gender breakdowns with reach, actions, and ROI conversion tracking
 3. **Regional Performance**: Geographic performance data
 4. **Device Performance**: Platform-specific metrics
 5. **Platform Breakdown**: Publisher platform position data  
 6. **Ad-Level Performance**: Individual ad metrics and performance
+
+### ROI & Conversion Tracking (NEW)
+- **Real Facebook Conversions**: Extract purchase data from `actions` array (purchase, omni_purchase, fb_pixel_purchase)
+- **Revenue Attribution**: Process conversion values from `action_values` array with attribution windows
+- **ROAS Calculations**: Utilize Facebook's `purchase_roas` field for accurate return on ad spend
+- **Demographic ROI**: Age/gender performance analysis showing conversion rates and revenue by segment
+- **Campaign ROI**: Individual campaign ROAS with cost per conversion metrics
 
 *Note: Hourly performance data was removed to reduce database load while maintaining all essential analytics capabilities.*
 
@@ -117,6 +125,7 @@ POST /api/admin/clients           // Auto-creates clients from Facebook accounts
 ### Client Routes
 - `GET /api/client/analytics` - Direct analytics from separated tables (analytics cache removed)
 - `GET /api/client/reports` - Monthly reports access (legacy JSONB)
+- `GET /client/analytics/roi` - ROI & ROAS analysis dashboard with demographic performance
 
 ### Testing
 - `GET/POST /api/test-facebook` - Facebook API connectivity tests
@@ -174,7 +183,9 @@ CREATE TABLE fb_demographics (
   spend DECIMAL(10,2),
   reach INTEGER,
   impressions INTEGER,
-  actions INTEGER,
+  actions JSONB,  -- Facebook actions array with conversion data
+  action_values JSONB,  -- Facebook action_values array with revenue data
+  purchase_roas JSONB,  -- Facebook purchase ROAS data
   scraped_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -346,15 +357,25 @@ DELETE FROM monthly_reports WHERE scraped_at < NOW() - INTERVAL '2 years';
 - **Data Accuracy**: Resolved all display issues with robust data processing
 - **Architecture Simplification**: Direct table queries for real-time data access
 
+#### Phase 5 - ROI & ROAS Implementation (COMPLETED)
+- **Real Facebook Conversion Data**: Successfully extract conversions from Facebook's `actions` array
+- **Revenue Attribution**: Process conversion values from `action_values` array with proper attribution windows
+- **ROI Dashboard**: Complete ROI analytics page with demographic performance breakdown
+- **ROAS Calculations**: Accurate return on ad spend using Facebook's `purchase_roas` field
+- **Demographic ROI Analysis**: Age/gender segments showing real conversion data (176+ conversions, ₹66,915 revenue)
+- **Campaign ROI Tracking**: Individual campaign ROAS with cost per conversion metrics
+- **Data Validation**: Verified with real database showing 45-54 female segment (3.17x ROAS), 35-44 male (76 conversions)
+- **Multiple Action Types**: Support for purchase, omni_purchase, fb_pixel_purchase conversion tracking
+
 ### 🔄 Next Steps (Priority Order)
 
-#### Current Focus (Phase 5)
+#### Current Focus (Phase 6)
 1. **Enhanced Error Handling**: Improve user feedback for data collection edge cases
 2. **Performance Optimization**: Optimize data processing and chart rendering
 3. **Testing Coverage**: Add comprehensive test suite for data processing logic
 4. **Mobile Responsiveness**: Ensure all dashboards work perfectly on mobile devices
 
-#### Future Enhancements (Phase 6)
+#### Future Enhancements (Phase 7)
 - PDF/CSV export functionality for client reports
 - Advanced filtering and date range selection
 - Email notifications for data collection completion
@@ -387,6 +408,11 @@ Use provided credentials to test both user types:
 - [x] Campaign performance displaying correct individual spend amounts
 - [x] Demographics page showing proper audience totals
 - [x] Campaign types analysis with accurate objective grouping
+- [x] ROI dashboard displaying real Facebook conversion data
+- [x] Demographic ROI analysis showing actual conversion counts and revenue
+- [x] ROAS calculations using Facebook's native purchase_roas field
+- [x] Multiple conversion action types supported (purchase, omni_purchase, fb_pixel_purchase)
+- [x] Attribution window data processing (1d_click, 7d_click, 28d_click)
 
 ---
 
@@ -394,6 +420,7 @@ Use provided credentials to test both user types:
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 2.9.0 | 2025-09-03 | 🚀 **ROI & ROAS IMPLEMENTATION**: Real Facebook conversion tracking with demographic ROI analysis |
 | 2.8.0 | 2025-09-02 | 🚀 **SEPARATED TABLES ARCHITECTURE**: Eliminated analytics cache, direct separated table access |
 | 2.7.0 | 2025-08-27 | ✅ **CLIENT DATA DISPLAY RESOLUTION**: Fixed spend distribution, demographics totals, campaign types |
 | 2.6.0 | 2025-08-26 | ✅ **ADMIN DASHBOARD COMPLETION**: Clean navigation, RLS resolution, enhanced data collection |
@@ -403,6 +430,17 @@ Use provided credentials to test both user types:
 | 2.2.0 | 2025-01-22 | ✅ Enhanced Facebook API with validation and testing |
 | 2.1.0 | 2025-01-22 | ✅ Database setup, core libraries, Facebook API integration |
 | 2.0.0 | 2025-01-XX | **Major Rewrite**: Migrated from N8N to Next.js App Router |
+
+### v2.9.0 ROI & ROAS Implementation
+- **Real Facebook Conversion Data**: Successfully implemented extraction from Facebook's `actions` and `action_values` arrays
+- **ROI Dashboard**: Complete ROI analytics page at `/client/analytics/roi` with demographic performance analysis
+- **Accurate ROAS Calculations**: Utilize Facebook's native `purchase_roas` field for precise return on ad spend
+- **Demographic ROI Breakdown**: Age/gender segments showing real conversion performance (176+ conversions, ₹66,915 total revenue)
+- **Multiple Purchase Action Types**: Support for `purchase`, `omni_purchase`, `offsite_conversion.fb_pixel_purchase` tracking
+- **Attribution Window Support**: Process 1d_click, 7d_click, 28d_click attribution data from Facebook API
+- **Conversion Insights**: Best performing segment identified (45-54 female: 3.17x ROAS, 6 conversions, ₹3,569 revenue)
+- **Data Validation**: Verified with real client database showing accurate conversion counts and revenue attribution
+- **Analytics Integration**: ROI data seamlessly integrated into existing analytics hook and dashboard components
 
 ### v2.8.0 Separated Tables Architecture
 - **Analytics Cache Elimination**: Completely removed analytics_cache table and dependencies

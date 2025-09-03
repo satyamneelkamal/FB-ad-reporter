@@ -48,6 +48,11 @@ const clientNavigation = {
       url: "/client/analytics/devices",
       icon: "IconDevices",
     },
+    {
+      title: "ROI & ROAS",
+      url: "/client/analytics/roi",
+      icon: "IconTrendingUp",
+    },
   ],
   navClouds: [
     {
@@ -71,6 +76,10 @@ const clientNavigation = {
         {
           title: "Engagement",
           url: "/client/analytics/engagement",
+        },
+        {
+          title: "ROI & ROAS",
+          url: "/client/analytics/roi",
         },
       ],
     },

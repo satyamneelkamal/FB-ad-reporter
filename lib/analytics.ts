@@ -15,6 +15,11 @@ export interface OverviewMetrics {
   roas?: number
   totalReach?: number
   totalImpressions?: number
+  // ROI-specific metrics
+  totalConversions?: number
+  totalConversionValue?: number
+  averageROAS?: number
+  costPerConversion?: number
 }
 
 export interface CampaignAnalysis {
@@ -28,6 +33,11 @@ export interface CampaignAnalysis {
   dateStart: string
   dateStop: string
   duration?: number
+  // ROI-specific metrics
+  conversions?: number
+  conversionValue?: number
+  roas?: number
+  costPerConversion?: number
 }
 
 export interface DemographicData {
@@ -177,7 +187,146 @@ export interface DevicePlatformData {
   deviceCount?: number
 }
 
+export interface ROIAnalysis {
+  available: boolean
+  totalConversions?: number
+  totalConversionValue?: number
+  totalSpend?: number
+  overallROAS?: number
+  overallCostPerConversion?: number
+  campaignROI?: Array<{
+    campaignId: string
+    campaignName: string
+    spend: number
+    conversions: number
+    conversionValue: number
+    roas: number
+    costPerConversion: number
+    roiStatus: 'Profitable' | 'Break-even' | 'Loss' | 'Unknown'
+  }>
+  objectiveROI?: Array<{
+    objective: string
+    totalSpend: number
+    totalConversions: number
+    totalConversionValue: number
+    avgROAS: number
+    campaignCount: number
+  }>
+  demographicROI?: Array<{
+    segment: string
+    spend: number
+    conversions: number
+    conversionValue: number
+    roas: number
+  }>
+  timeSeriesROI?: Array<{
+    date: string
+    spend: number
+    conversions: number
+    conversionValue: number
+    roas: number
+  }>
+  insights?: {
+    bestPerformingCampaign?: string
+    bestObjective?: string
+    worstPerformingCampaign?: string
+    recommendedAction?: string
+  }
+}
+
 export class FacebookAnalytics {
+  
+  /**
+   * 🔧 ROI HELPER FUNCTIONS
+   * Extract and process ROI data from Facebook API responses
+   */
+  
+  /**
+   * Extract ROAS value from Facebook API JSONB response
+   * Facebook returns ROAS data as JSONB array like: [{"action_type":"purchase","value":"2.34"}]
+   */
+  static extractROAS(roasData: any): number {
+    if (!roasData || !Array.isArray(roasData)) return 0
+    
+    // Find purchase ROAS specifically
+    const purchaseRoas = roasData.find((item: any) => 
+      item.action_type === 'purchase' || 
+      item.action_type === 'offsite_conversion.fb_pixel_purchase' ||
+      item.action_type === 'omni_purchase'
+    )
+    
+    return purchaseRoas ? parseFloat(purchaseRoas.value || '0') : 0
+  }
+  
+  /**
+   * Extract conversion value from Facebook API action_values array
+   * Facebook returns action_values as JSONB array like: [{"action_type":"purchase","value":"150.00"}]
+   * Note: actionValuesData param can be either action_values field OR calculate from ROAS*spend
+   */
+  static extractConversionValue(actionValuesData: any, purchaseROAS?: any, spend?: number): number {
+    // First try to get from action_values array
+    if (actionValuesData && Array.isArray(actionValuesData)) {
+      const purchaseValue = actionValuesData.find((item: any) => 
+        item.action_type === 'purchase' || 
+        item.action_type === 'offsite_conversion.fb_pixel_purchase' ||
+        item.action_type === 'omni_purchase'
+      )
+      
+      if (purchaseValue) {
+        const conversionValue = purchaseValue['28d_click'] || purchaseValue.value || '0'
+        return parseFloat(conversionValue)
+      }
+    }
+    
+    // Fallback: Calculate from ROAS * spend if available
+    if (purchaseROAS && spend) {
+      const roas = this.extractROAS(purchaseROAS)
+      if (roas > 0) {
+        return roas * spend
+      }
+    }
+    
+    return 0
+  }
+  
+  /**
+   * Extract conversion count from Facebook API actions array
+   * Facebook returns actions as JSONB array like: [{"action_type":"purchase","value":"5"}]
+   * Note: conversionsData param can be either the separate conversions field OR actions field
+   */
+  static extractConversions(actionsData: any): number {
+    if (!actionsData || !Array.isArray(actionsData)) return 0
+    
+    // Find purchase conversions specifically - try multiple action types
+    const purchaseAction = actionsData.find((item: any) => 
+      item.action_type === 'purchase' || 
+      item.action_type === 'offsite_conversion.fb_pixel_purchase' ||
+      item.action_type === 'omni_purchase'
+    )
+    
+    if (purchaseAction) {
+      // Use 28d_click attribution if available, otherwise use value
+      const conversionCount = purchaseAction['28d_click'] || purchaseAction.value || '0'
+      return parseInt(conversionCount)
+    }
+    
+    return 0
+  }
+  
+  /**
+   * Extract cost per conversion from Facebook API JSONB response
+   */
+  static extractCostPerConversion(costPerConversionData: any): number {
+    if (!costPerConversionData || !Array.isArray(costPerConversionData)) return 0
+    
+    const purchaseCost = costPerConversionData.find((item: any) => 
+      item.action_type === 'purchase' || 
+      item.action_type === 'offsite_conversion.fb_pixel_purchase' ||
+      item.action_type === 'omni_purchase'
+    )
+    
+    return purchaseCost ? parseFloat(purchaseCost.value || '0') : 0
+  }
   
   /**
    * 📊 OVERVIEW METRICS
@@ -208,14 +357,105 @@ export class FacebookAnalytics {
       ? demographics.reduce((sum: number, demo: any) => sum + parseInt(demo.reach || '0'), 0)
       : adLevel.reduce((sum: number, ad: any) => sum + parseInt(ad.reach || '0'), 0)
     
+    // Calculate ROI metrics from available data
+    const roiData = this.calculateROIMetrics(campaigns, demographics, adLevel)
+    
     return {
       totalSpend,
       activeCampaigns,
       totalCampaigns: campaigns.length,
       totalAds: adLevel.length,
       totalImpressions: totalImpressions || undefined,
-      totalReach: totalReach || undefined
-      // Note: ROAS, purchases, revenue require additional Facebook conversion data
+      totalReach: totalReach || undefined,
+      // ROI metrics
+      totalConversions: roiData.totalConversions || undefined,
+      totalConversionValue: roiData.totalConversionValue || undefined,
+      averageROAS: roiData.averageROAS || undefined,
+      costPerConversion: roiData.costPerConversion || undefined
+    }
+  }
+
+  /**
+   * 💰 ROI METRICS CALCULATION
+   * Calculate overall ROI metrics from campaign, demographics, and ad-level data
+   */
+  static calculateROIMetrics(campaigns: any[], demographics: any[], adLevel: any[]): {
+    totalConversions: number
+    totalConversionValue: number
+    averageROAS: number
+    costPerConversion: number
+  } {
+    let totalConversions = 0
+    let totalConversionValue = 0
+    let totalROAS = 0
+    let roasCount = 0
+    
+    // Extract ROI data from campaigns first
+    campaigns.forEach((campaign: any) => {
+      const conversions = this.extractConversions(campaign.actions)
+      const conversionValue = this.extractConversionValue(
+        campaign.action_values, 
+        campaign.purchase_roas, 
+        parseFloat(campaign.spend || '0')
+      )
+      
+      totalConversions += conversions
+      totalConversionValue += conversionValue
+      
+      const roas = this.extractROAS(campaign.purchase_roas)
+      if (roas > 0) {
+        totalROAS += roas
+        roasCount++
+      }
+    })
+    
+    // Also check demographics data for ROI metrics
+    demographics.forEach((demo: any) => {
+      const conversions = this.extractConversions(demo.actions)
+      const conversionValue = this.extractConversionValue(
+        demo.action_values, 
+        demo.purchase_roas, 
+        parseFloat(demo.spend || '0')
+      )
+      
+      totalConversions += conversions
+      totalConversionValue += conversionValue
+      
+      const roas = this.extractROAS(demo.purchase_roas)
+      if (roas > 0) {
+        totalROAS += roas
+        roasCount++
+      }
+    })
+    
+    // Also check ad-level data
+    adLevel.forEach((ad: any) => {
+      const conversions = this.extractConversions(ad.actions)
+      const conversionValue = this.extractConversionValue(
+        ad.action_values, 
+        ad.purchase_roas, 
+        parseFloat(ad.spend || '0')
+      )
+      
+      totalConversions += conversions
+      totalConversionValue += conversionValue
+      
+      const roas = this.extractROAS(ad.purchase_roas)
+      if (roas > 0) {
+        totalROAS += roas
+        roasCount++
+      }
+    })
+    
+    const averageROAS = roasCount > 0 ? totalROAS / roasCount : 0
+    const costPerConversion = totalConversions > 0 ? 
+      (campaigns.reduce((sum, c) => sum + parseFloat(c.spend || '0'), 0) / totalConversions) : 0
+    
+    return {
+      totalConversions,
+      totalConversionValue,
+      averageROAS,
+      costPerConversion
     }
   }
 
@@ -247,6 +487,13 @@ export class FacebookAnalytics {
       const endDate = new Date(campaign.date_stop)
       const duration = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
       
+      // Extract ROI metrics for this campaign
+      const conversions = this.extractConversions(campaign.actions)
+      const conversionValue = this.extractConversionValue(campaign.action_values, campaign.purchase_roas, estimatedSpend)
+      const roas = this.extractROAS(campaign.purchase_roas)
+      const costPerConversion = this.extractCostPerConversion(campaign.cost_per_conversion) || 
+                               (conversions > 0 ? estimatedSpend / conversions : 0)
+
       return {
         id: campaign.campaign_id,
         name: campaign.campaign_name,
@@ -257,7 +504,12 @@ export class FacebookAnalytics {
         status: (estimatedSpend > 0 ? 'Active' : 'Inactive') as 'Active' | 'Inactive',
         dateStart: campaign.date_start,
         dateStop: campaign.date_stop,
-        duration
+        duration,
+        // ROI metrics
+        conversions: conversions || undefined,
+        conversionValue: conversionValue || undefined,
+        roas: roas || undefined,
+        costPerConversion: costPerConversion || undefined
       }
     }).sort((a, b) => b.spend - a.spend)
   }
@@ -1063,6 +1315,152 @@ export class FacebookAnalytics {
   }
 
   /**
+   * 💰 COMPREHENSIVE ROI ANALYSIS
+   * Generate detailed ROI breakdown across campaigns, objectives, and demographics
+   */
+  static processROIAnalysis(reportData: any): ROIAnalysis {
+    const campaigns = reportData.campaigns || []
+    const demographics = reportData.demographics || []
+    const adLevel = reportData.adLevel || []
+    
+    // Check if any ROI data is available
+    const hasROIData = campaigns.some((c: any) => 
+      c.actions || c.action_values || c.purchase_roas
+    ) || demographics.some((d: any) => 
+      d.actions || d.action_values || d.purchase_roas
+    ) || adLevel.some((a: any) => 
+      a.actions || a.action_values || a.purchase_roas
+    )
+    
+    if (!hasROIData) {
+      return { available: false }
+    }
+    
+    // Calculate overall ROI metrics
+    const overallMetrics = this.calculateROIMetrics(campaigns, demographics, adLevel)
+    const totalSpend = campaigns.reduce((sum: number, c: any) => sum + parseFloat(c.spend || '0'), 0)
+    
+    // Campaign-level ROI analysis
+    const campaignROI = campaigns
+      .map((campaign: any) => {
+        const spend = parseFloat(campaign.spend || '0')
+        const conversions = this.extractConversions(campaign.conversions)
+        const conversionValue = this.extractConversionValue(campaign.conversion_values)
+        const roas = this.extractROAS(campaign.purchase_roas)
+        const costPerConversion = conversions > 0 ? spend / conversions : 0
+        
+        let roiStatus: 'Profitable' | 'Break-even' | 'Loss' | 'Unknown' = 'Unknown'
+        if (roas > 0) {
+          roiStatus = roas > 2 ? 'Profitable' : roas > 1 ? 'Break-even' : 'Loss'
+        }
+        
+        return {
+          campaignId: campaign.campaign_id,
+          campaignName: campaign.campaign_name,
+          spend,
+          conversions,
+          conversionValue,
+          roas,
+          costPerConversion,
+          roiStatus
+        }
+      })
+      .filter(campaign => campaign.conversions > 0 || campaign.roas > 0)
+      .sort((a, b) => b.roas - a.roas)
+    
+    // Objective-level ROI analysis
+    const objectiveGroups = campaigns.reduce((acc: any, campaign: any) => {
+      const objective = campaign.objective || 'NONE'
+      if (!acc[objective]) {
+        acc[objective] = {
+          campaigns: [],
+          totalSpend: 0,
+          totalConversions: 0,
+          totalConversionValue: 0,
+          roasValues: []
+        }
+      }
+      
+      const spend = parseFloat(campaign.spend || '0')
+      const conversions = this.extractConversions(campaign.conversions)
+      const conversionValue = this.extractConversionValue(campaign.conversion_values)
+      const roas = this.extractROAS(campaign.purchase_roas)
+      
+      acc[objective].campaigns.push(campaign)
+      acc[objective].totalSpend += spend
+      acc[objective].totalConversions += conversions
+      acc[objective].totalConversionValue += conversionValue
+      if (roas > 0) acc[objective].roasValues.push(roas)
+      
+      return acc
+    }, {})
+    
+    const objectiveROI = Object.entries(objectiveGroups)
+      .map(([objective, data]: [string, any]) => ({
+        objective,
+        totalSpend: data.totalSpend,
+        totalConversions: data.totalConversions,
+        totalConversionValue: data.totalConversionValue,
+        avgROAS: data.roasValues.length > 0 ? 
+          data.roasValues.reduce((sum: number, roas: number) => sum + roas, 0) / data.roasValues.length : 0,
+        campaignCount: data.campaigns.length
+      }))
+      .filter(obj => obj.totalConversions > 0 || obj.avgROAS > 0)
+      .sort((a, b) => b.avgROAS - a.avgROAS)
+    
+    // Demographic ROI analysis (if available)
+    const demographicROI = demographics.length > 0 ? demographics
+      .map((demo: any) => {
+        const spend = parseFloat(demo.spend || '0')
+        const conversions = this.extractConversions(demo.actions)
+        const conversionValue = this.extractConversionValue(demo.action_values, demo.purchase_roas, spend)
+        const roas = this.extractROAS(demo.purchase_roas)
+        
+        return {
+          segment: `${demo.age || 'Unknown'} ${demo.gender || 'Unknown'}`.trim(),
+          spend,
+          conversions,
+          conversionValue,
+          roas
+        }
+      })
+      .filter(demo => demo.conversions > 0 || demo.roas > 0)
+      .sort((a, b) => b.roas - a.roas)
+      .slice(0, 10) : []
+    
+    // Generate insights
+    const bestCampaign = campaignROI.length > 0 ? campaignROI[0] : null
+    const bestObjective = objectiveROI.length > 0 ? objectiveROI[0] : null
+    const worstCampaign = campaignROI.length > 0 ? 
+      [...campaignROI].sort((a, b) => a.roas - b.roas)[0] : null
+    
+    let recommendedAction = 'Set up Facebook Pixel conversion tracking to measure ROI'
+    if (bestCampaign && bestCampaign.roas > 2) {
+      recommendedAction = `Scale budget for "${bestCampaign.campaignName}" (${bestCampaign.roas.toFixed(2)}x ROAS)`
+    } else if (bestObjective && bestObjective.avgROAS > 1) {
+      recommendedAction = `Focus more campaigns on ${bestObjective.objective.replace(/_/g, ' ')} objective`
+    }
+    
+    return {
+      available: true,
+      totalConversions: overallMetrics.totalConversions,
+      totalConversionValue: overallMetrics.totalConversionValue,
+      totalSpend,
+      overallROAS: overallMetrics.averageROAS,
+      overallCostPerConversion: overallMetrics.costPerConversion,
+      campaignROI,
+      objectiveROI,
+      demographicROI: demographicROI.length > 0 ? demographicROI : undefined,
+      insights: {
+        bestPerformingCampaign: bestCampaign?.campaignName,
+        bestObjective: bestObjective?.objective.replace(/_/g, ' '),
+        worstPerformingCampaign: worstCampaign?.campaignName,
+        recommendedAction
+      }
+    }
+  }
+
+  /**
    * COMPREHENSIVE ANALYTICS
    * Generate all analytics sections at once
    */
@@ -1095,6 +1493,7 @@ export class FacebookAnalytics {
       engagementByObjective: this.groupEngagementByObjective(campaigns, demographics), // NEW: Engagement data by objective
       devicesAndPlatforms: this.processDevices(devices, platforms),
       audienceProfile,
+      roi: this.processROIAnalysis(reportData), // NEW: ROI analysis
       adLevel: adLevel,
       dataAvailability: {
         campaigns: campaigns.length > 0,
@@ -1102,7 +1501,8 @@ export class FacebookAnalytics {
         demographics: demographics.length > 0,
         regional: regional.length > 0,
         devices: devices.length > 0,
-        platforms: platforms.length > 0
+        platforms: platforms.length > 0,
+        roi: this.processROIAnalysis(reportData).available
       }
     }
   }

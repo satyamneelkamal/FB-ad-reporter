@@ -34,6 +34,7 @@ export interface AnalyticsData {
   devicesAndPlatforms: any
   audienceProfile: any
   adLevel: any[]
+  roi: any // Added ROI data
   
   // Processed chart data
   metricCards: MetricCardData[]
@@ -62,6 +63,7 @@ export function useAnalytics() {
     devicesAndPlatforms: null,
     audienceProfile: null,
     adLevel: [],
+    roi: null, // Added ROI data
     
     // Processed chart data
     metricCards: [],
@@ -103,6 +105,22 @@ export function useAnalytics() {
           trend: 'neutral'
         }
       ]
+
+      // Add ROI metric cards if ROI data is available
+      if (rawData.overview?.totalConversions && rawData.overview.totalConversions > 0) {
+        metricCards.push(
+          {
+            title: 'Total Conversions',
+            value: rawData.overview.totalConversions,
+            trend: 'up'
+          },
+          {
+            title: 'Average ROAS',
+            value: `${(rawData.overview.averageROAS || 0).toFixed(2)}x`,
+            trend: rawData.overview.averageROAS > 2 ? 'up' : rawData.overview.averageROAS < 1 ? 'down' : 'neutral'
+          }
+        )
+      }
 
       // Process Campaign Status Chart (Pie Chart)
       const activeCampaigns = rawData.overview?.activeCampaigns || 0
