@@ -1570,11 +1570,20 @@ export class FacebookAnalytics {
       : campaigns.reduce((sum: number, c: any) => sum + parseFloat(c.spend || '0'), 0)
     
     // Campaign-level ROI analysis
+    // First, get distributed spend per campaign (since FB API returns $0 for campaigns)
+    const activeCampaigns = campaigns.filter((c: any) => 
+      c.objective !== 'NONE' && c.campaign_name && c.campaign_name.trim()
+    )
+    const distributedSpendPerCampaign = activeCampaigns.length > 0 && totalSpend > 0 
+      ? totalSpend / activeCampaigns.length 
+      : 0
+    
     const campaignROI = campaigns
       .map((campaign: any) => {
-        const spend = parseFloat(campaign.spend || '0')
-        const conversions = this.extractConversions(campaign.conversions)
-        const conversionValue = this.extractConversionValue(campaign.conversion_values)
+        const isActiveCampaign = activeCampaigns.includes(campaign)
+        const spend = isActiveCampaign ? distributedSpendPerCampaign : 0
+        const conversions = this.extractConversions(campaign.conversions || campaign.actions)
+        const conversionValue = this.extractConversionValue(campaign.conversion_values || campaign.action_values, campaign.purchase_roas, spend)
         const roas = this.extractROAS(campaign.purchase_roas)
         const costPerConversion = conversions > 0 ? spend / conversions : 0
         
