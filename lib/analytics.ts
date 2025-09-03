@@ -1173,19 +1173,43 @@ export class FacebookAnalytics {
       })
       .slice(0, 3) : []
 
-    // Campaign objective insights
+    // Campaign objective insights with ROAS calculations
     const objectivePerformance = campaigns
       .reduce((acc: any, campaign: any) => {
         const objective = campaign.objective || 'NONE'
         const spend = parseFloat(campaign.spend || '0')
         
         if (!acc[objective]) {
-          acc[objective] = { spend: 0, count: 0, avgSpend: 0 }
+          acc[objective] = { 
+            spend: 0, 
+            count: 0, 
+            avgSpend: 0,
+            totalConversions: 0,
+            totalConversionValue: 0
+          }
         }
         
         acc[objective].spend += spend
         acc[objective].count += 1
         acc[objective].avgSpend = acc[objective].spend / acc[objective].count
+        
+        // Add ROAS calculations from demographics data that matches this campaign's objective
+        if (demographics?.length) {
+          demographics.forEach((demo: any) => {
+            // We need to match demographics to campaigns by some criteria
+            // For now, distribute conversions proportionally by spend
+            const demoSpend = parseFloat(demo.spend || '0')
+            const proportionOfSpend = (spend > 0 && demoSpend > 0) ? (spend / totalSpend) : 0
+            
+            if (proportionOfSpend > 0) {
+              const conversions = this.extractConversions(demo.actions) || 0
+              const conversionValue = this.extractConversionValue(demo.action_values, demo.purchase_roas, demoSpend) || 0
+              
+              acc[objective].totalConversions += conversions * proportionOfSpend
+              acc[objective].totalConversionValue += conversionValue * proportionOfSpend
+            }
+          })
+        }
         
         return acc
       }, {})
@@ -1194,9 +1218,16 @@ export class FacebookAnalytics {
       .map(([objective, data]: [string, any]) => ({
         objective,
         ...data,
-        efficiency: data.spend > 0 ? data.count / data.spend * 1000 : 0 // campaigns per 1000 spent
+        efficiency: data.spend > 0 ? data.count / data.spend * 1000 : 0, // campaigns per 1000 spent
+        avgROAS: data.spend > 0 && data.totalConversionValue > 0 ? data.totalConversionValue / data.spend : 0
       }))
-      .sort((a, b) => b.efficiency - a.efficiency)
+      .sort((a, b) => {
+        // Sort by ROAS first (if available), then by efficiency
+        if (a.avgROAS > 0 && b.avgROAS > 0) return b.avgROAS - a.avgROAS
+        if (a.avgROAS > 0) return -1
+        if (b.avgROAS > 0) return 1
+        return b.efficiency - a.efficiency
+      })
       .slice(0, 3)
 
     // Device preferences
@@ -1418,7 +1449,9 @@ export class FacebookAnalytics {
         spend: data.totalSpend,
         count: data.count,
         avgSpend: data.totalSpend / data.count,
-        efficiency: data.totalSpend > 0 ? data.count / data.totalSpend * 1000 : 0
+        efficiency: data.totalSpend > 0 ? data.count / data.totalSpend * 1000 : 0,
+        avgROAS: 0, // No demographics data available for ROAS calculation
+        totalConversions: 0
       }))
       .sort((a, b) => b.spend - a.spend)
       .slice(0, 5)

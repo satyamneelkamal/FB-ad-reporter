@@ -33,6 +33,8 @@ interface AudienceProfileData {
     count: number
     avgSpend: number
     efficiency: number
+    avgROAS?: number
+    totalConversions?: number
   }>
   devicePreferences?: Array<{
     device: string
