@@ -96,6 +96,8 @@ interface AudienceProfileData {
     count: number
     avgSpend: number
     efficiency: number
+    avgROAS?: number
+    totalConversions?: number
   }>
   devicePreferences?: Array<{
     device: string
@@ -1207,47 +1209,139 @@ export class FacebookAnalytics {
       .sort((a, b) => b.spend - a.spend)
       .slice(0, 2) : []
 
-    // Generate actionable recommendations
+    // Generate AI-powered ROAS optimization recommendations
     const recommendations = []
+    const segmentsWithROAS = topSegments.filter(s => s.roas > 0)
+    const regionsWithROAS = topRegions.filter(r => r.roas > 0)
     
+    // ROAS-focused demographic insights
     if (topSegments.length > 0) {
       const bestSegment = topSegments[0]
-      if (bestSegment.roas > 0) {
+      const profitableSegments = topSegments.filter(s => s.roas >= 2)
+      const losingSegments = topSegments.filter(s => s.roas > 0 && s.roas < 1)
+      
+      if (bestSegment.roas >= 3) {
         recommendations.push({
-          type: 'scale',
-          title: `Scale ${bestSegment.age} ${bestSegment.gender} segment`,
-          description: `Excellent ROAS (${bestSegment.roas.toFixed(2)}x) with ${bestSegment.conversions} conversions`,
-          impact: bestSegment.roas >= 3 ? 'High' : bestSegment.roas >= 2 ? 'Medium' : 'Low',
-          action: 'Increase budget allocation by 50%'
+          type: 'scale-winner',
+          title: `🚀 Scale Champion: ${bestSegment.age} ${bestSegment.gender}`,
+          description: `Exceptional ${bestSegment.roas.toFixed(1)}x ROAS with ₹${Math.round((bestSegment.conversions || 0) * bestSegment.roas * bestSegment.spend / Math.max(bestSegment.conversions || 1, 1))} revenue`,
+          impact: 'High',
+          action: 'Double budget allocation immediately'
+        })
+      } else if (bestSegment.roas >= 2) {
+        recommendations.push({
+          type: 'scale-profitable',
+          title: `📈 Scale Profitable: ${bestSegment.age} ${bestSegment.gender}`,
+          description: `Strong ${bestSegment.roas.toFixed(1)}x ROAS generating solid profits`,
+          impact: 'High',
+          action: 'Increase budget by 75%'
+        })
+      } else if (bestSegment.roas >= 1) {
+        recommendations.push({
+          type: 'optimize-breakeven',
+          title: `🔧 Optimize: ${bestSegment.age} ${bestSegment.gender}`,
+          description: `Breaking even at ${bestSegment.roas.toFixed(1)}x ROAS - optimize for profit`,
+          impact: 'Medium',
+          action: 'Test new creatives and landing pages'
+        })
+      } else if (bestSegment.roas > 0) {
+        recommendations.push({
+          type: 'fix-losses',
+          title: `⚠️ Fix Losses: ${bestSegment.age} ${bestSegment.gender}`,
+          description: `Losing money at ${bestSegment.roas.toFixed(1)}x ROAS`,
+          impact: 'High',
+          action: 'Pause and analyze or pivot strategy'
         })
       } else {
         recommendations.push({
-          type: 'scale',
-          title: `Scale ${bestSegment.age} ${bestSegment.gender} segment`,
-          description: `High CTR (${bestSegment.ctr.toFixed(2)}%) with good volume`,
+          type: 'scale-engagement',
+          title: `📊 Scale High CTR: ${bestSegment.age} ${bestSegment.gender}`,
+          description: `High engagement (${bestSegment.ctr.toFixed(2)}% CTR) - add conversion tracking`,
+          impact: 'Medium',
+          action: 'Implement conversion tracking to measure ROI'
+        })
+      }
+      
+      // Additional insights for losing segments
+      if (losingSegments.length > 0) {
+        recommendations.push({
+          type: 'cut-losses',
+          title: `💸 Cut Losses: ${losingSegments.length} Underperforming Segments`,
+          description: `${losingSegments.length} segments with <1.0x ROAS are burning budget`,
           impact: 'High',
-          action: 'Increase budget allocation'
+          action: 'Reallocate budget to profitable segments'
         })
       }
     }
     
+    // ROAS-focused regional insights
     if (topRegions.length > 0) {
       const bestRegion = topRegions[0]
-      if (bestRegion.roas > 0) {
+      const profitableRegions = topRegions.filter(r => r.roas >= 2)
+      
+      if (bestRegion.roas >= 3) {
         recommendations.push({
-          type: 'geographic',
-          title: `Focus on ${bestRegion.region}`,
-          description: `Top regional ROAS (${bestRegion.roas.toFixed(2)}x) with ₹${Math.round(bestRegion.conversionValue)} revenue`,
-          impact: bestRegion.roas >= 2 ? 'High' : 'Medium',
-          action: 'Shift 30% more budget to this region'
+          type: 'geographic-champion',
+          title: `🏆 Revenue Powerhouse: ${bestRegion.region}`,
+          description: `Exceptional ${bestRegion.roas.toFixed(1)}x ROAS generating ₹${Math.round(bestRegion.conversionValue).toLocaleString()} revenue`,
+          impact: 'High',
+          action: 'Shift 50% more budget to this region'
+        })
+      } else if (bestRegion.roas >= 2) {
+        recommendations.push({
+          type: 'geographic-profitable',
+          title: `💰 Profitable Region: ${bestRegion.region}`,
+          description: `Strong ${bestRegion.roas.toFixed(1)}x ROAS with ₹${Math.round(bestRegion.conversionValue).toLocaleString()} revenue`,
+          impact: 'High',
+          action: 'Increase regional budget by 40%'
+        })
+      } else if (bestRegion.roas >= 1) {
+        recommendations.push({
+          type: 'geographic-optimize',
+          title: `🔧 Optimize ${bestRegion.region}`,
+          description: `Breaking even - optimize for profitability`,
+          impact: 'Medium',
+          action: 'Test location-specific messaging'
+        })
+      } else if (bestRegion.roas > 0) {
+        recommendations.push({
+          type: 'geographic-fix',
+          title: `⚠️ Fix ${bestRegion.region}`,
+          description: `Losing money at ${bestRegion.roas.toFixed(1)}x ROAS`,
+          impact: 'High',
+          action: 'Reduce budget or pause targeting'
         })
       } else {
         recommendations.push({
-          type: 'geographic',
-          title: `Focus on ${bestRegion.region}`,
-          description: `Best regional CTR at ${bestRegion.ctr.toFixed(2)}%`,
+          type: 'geographic-engagement',
+          title: `📍 Geographic Leader: ${bestRegion.region}`,
+          description: `Best engagement (${bestRegion.ctr.toFixed(2)}% CTR) - track conversions`,
           impact: 'Medium',
-          action: 'Expand regional targeting'
+          action: 'Add location-based conversion tracking'
+        })
+      }
+    }
+    
+    // Portfolio-level ROAS insights
+    if (segmentsWithROAS.length >= 2) {
+      const avgROAS = segmentsWithROAS.reduce((sum, s) => sum + s.roas, 0) / segmentsWithROAS.length
+      const profitableSegments = segmentsWithROAS.filter(s => s.roas >= 2)
+      
+      if (avgROAS >= 2.5) {
+        recommendations.push({
+          type: 'portfolio-scale',
+          title: `🚀 Portfolio Excellence: ${avgROAS.toFixed(1)}x Avg ROAS`,
+          description: `Outstanding portfolio performance across ${profitableSegments.length} segments`,
+          impact: 'High',
+          action: 'Scale entire portfolio by 100%'
+        })
+      } else if (avgROAS < 1.2) {
+        recommendations.push({
+          type: 'portfolio-crisis',
+          title: `🚨 Portfolio Optimization Needed: ${avgROAS.toFixed(1)}x Avg ROAS`,
+          description: `Immediate action required - focus on profitable segments only`,
+          impact: 'High',
+          action: 'Pause underperformers, scale winners only'
         })
       }
     }
@@ -1285,9 +1379,14 @@ export class FacebookAnalytics {
       recommendations,
       totalSpend,
       insights: {
-        bestPerformingAge: topSegments[0]?.age || 'Unknown',
-        bestPerformingGender: topSegments[0]?.gender || 'Unknown',
-        bestRegion: topRegions[0]?.region || 'Unknown',
+        // Enhanced ROAS-focused insights
+        bestPerformingAge: topSegments[0] 
+          ? `${topSegments[0].age} ${topSegments[0].roas > 0 ? `(${topSegments[0].roas.toFixed(1)}x ROAS)` : ''}` 
+          : 'Data not available',
+        bestPerformingGender: topSegments[0]?.gender || 'Data not available',
+        bestRegion: topRegions[0] 
+          ? `${topRegions[0].region} ${topRegions[0].roas > 0 ? `(₹${Math.round(topRegions[0].conversionValue || 0).toLocaleString()})` : ''}` 
+          : 'Data not available',
         primaryDevice: devicePreferences[0]?.device || 'Unknown'
       }
     }
