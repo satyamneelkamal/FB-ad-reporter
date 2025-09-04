@@ -185,7 +185,7 @@ export default function DevicesAnalysisPage() {
         <div>
           <h2 className="text-xl font-semibold mb-4">Device Performance Breakdown</h2>
           <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {devicesAndPlatforms.devices.map((device, index) => (
+            {devicesAndPlatforms.devices.map((device: any, index: number) => (
               <Card key={device.device}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base font-medium flex items-center gap-2">

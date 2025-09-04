@@ -54,55 +54,7 @@ const clientNavigation = {
       icon: "IconTrendingUp",
     },
   ],
-  navClouds: [
-    {
-      title: "Core Analytics",
-      icon: "IconChartPie",
-      isActive: true,
-      url: "/client/analytics",
-      items: [
-        {
-          title: "Overview",
-          url: "/client/analytics",
-        },
-        {
-          title: "Campaigns",
-          url: "/client/analytics/campaigns",
-        },
-        {
-          title: "Campaign Types",
-          url: "/client/analytics/campaign-types",
-        },
-        {
-          title: "Engagement",
-          url: "/client/analytics/engagement",
-        },
-        {
-          title: "ROI & ROAS",
-          url: "/client/analytics/roi",
-        },
-      ],
-    },
-    {
-      title: "Audience Insights",
-      icon: "IconUsers",
-      url: "/client/analytics/demographics",
-      items: [
-        {
-          title: "Demographics",
-          url: "/client/analytics/demographics",
-        },
-        {
-          title: "Regional Performance",
-          url: "/client/analytics/regional",
-        },
-        {
-          title: "Devices & Platforms",
-          url: "/client/analytics/devices",
-        },
-      ],
-    },
-  ],
+  navClouds: [],
   navSecondary: [
     {
       title: "Account Settings",

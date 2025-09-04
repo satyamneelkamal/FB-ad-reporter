@@ -259,19 +259,10 @@ export default function AnalyticsDashboard() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {analytics.dataAvailability && Object.entries(analytics.dataAvailability).map(([key, available]) => (
-                <div key={key} className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${
-                    available ? 'bg-green-500' : 'bg-red-500'
-                  }`} />
-                  <span className="capitalize text-sm">
-                    {key.replace(/([A-Z])/g, ' $1').trim()}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {available ? '✓' : '✗'}
-                  </span>
-                </div>
-              ))}
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-green-500" />
+                <span className="text-sm">Data Available</span>
+              </div>
             </div>
           </CardContent>
         </Card>

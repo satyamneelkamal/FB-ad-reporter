@@ -21,11 +21,11 @@ import {
 export const description = "A pie chart with no separator"
 
 const chartData = [
-  { browser: "chrome", visitors: 275, fill: "var(--color-chrome)" },
-  { browser: "safari", visitors: 200, fill: "var(--color-safari)" },
-  { browser: "firefox", visitors: 187, fill: "var(--color-firefox)" },
-  { browser: "edge", visitors: 173, fill: "var(--color-edge)" },
-  { browser: "other", visitors: 90, fill: "var(--color-other)" },
+  { name: "chrome", value: 275, fill: "var(--color-chrome)" },
+  { name: "safari", value: 200, fill: "var(--color-safari)" },
+  { name: "firefox", value: 187, fill: "var(--color-firefox)" },
+  { name: "edge", value: 173, fill: "var(--color-edge)" },
+  { name: "other", value: 90, fill: "var(--color-other)" },
 ]
 
 const chartConfig = {

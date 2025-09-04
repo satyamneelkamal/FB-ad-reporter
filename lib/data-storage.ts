@@ -274,7 +274,7 @@ export async function getStoredClientData(
     // Generate quality summary from stored data
     let qualitySummary
     try {
-      const qualityReport = generateDataQualityReport(report.report_data as ValidatedFacebookData)
+      const qualityReport = generateDataQualityReport(report.report_data as unknown as ValidatedFacebookData)
       qualitySummary = {
         total_records: (report.report_data as any).collection_summary?.total_records || 0,
         collection_date: report.scraped_at,
@@ -330,7 +330,7 @@ export async function getClientAvailableMonths(clientSlug: string): Promise<{
     const availableMonths = reports.map(report => ({
       month_year: report.month_year,
       scraped_at: report.scraped_at,
-      record_count: report.report_data.collection_summary?.total_records || 0
+      record_count: (report.report_data as any).collection_summary?.total_records || 0
     }))
 
     return {

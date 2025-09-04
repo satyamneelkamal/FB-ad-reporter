@@ -46,11 +46,11 @@ export default function RegionalAnalysisPage() {
 
   // Calculate regional insights from available data
   const regionalData = analytics.regional?.regions || []
-  const totalRegionalSpend = regionalData.reduce((sum, r) => sum + r.spend, 0)
+  const totalRegionalSpend = regionalData.reduce((sum: number, r: any) => sum + r.spend, 0)
   const topPerformingRegion = regionalData.length > 0 ? 
-    [...regionalData].sort((a, b) => b.spend - a.spend)[0] : null
+    [...regionalData].sort((a: any, b: any) => b.spend - a.spend)[0] : null
   const bestCTRRegion = regionalData.length > 0 ? 
-    [...regionalData].sort((a, b) => b.ctr - a.ctr)[0] : null
+    [...regionalData].sort((a: any, b: any) => b.ctr - a.ctr)[0] : null
   const totalRegions = regionalData.length
 
   return (
@@ -146,8 +146,8 @@ export default function RegionalAnalysisPage() {
           <h2 className="text-xl font-semibold mb-4">Regional Performance Breakdown</h2>
           <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {regionalData
-              .sort((a, b) => b.spend - a.spend)
-              .map((region, index) => (
+              .sort((a: any, b: any) => b.spend - a.spend)
+              .map((region: any, index: number) => (
                 <Card key={region.region}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base font-medium flex items-center gap-2">

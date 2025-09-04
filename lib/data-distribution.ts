@@ -87,7 +87,7 @@ export async function distributeReportData(
     if (reportData.campaigns && reportData.campaigns.length > 0) {
       console.log(`📈 Distributing ${reportData.campaigns.length} campaign records...`);
       
-      const campaignInserts = reportData.campaigns.map(campaign => ({
+      const campaignInserts = reportData.campaigns.map((campaign: any) => ({
         client_id: clientId,
         month_year: monthYear,
         campaign_id: campaign.campaign_id,
@@ -154,7 +154,7 @@ export async function distributeReportData(
     if (reportData.demographics && reportData.demographics.length > 0) {
       console.log(`👥 Distributing ${reportData.demographics.length} demographics records...`);
       
-      const demographicsInserts = reportData.demographics.map(demo => ({
+      const demographicsInserts = reportData.demographics.map((demo: any) => ({
         client_id: clientId,
         month_year: monthYear,
         age: demo.age,
@@ -215,7 +215,7 @@ export async function distributeReportData(
     if (reportData.regional && reportData.regional.length > 0) {
       console.log(`🌍 Distributing ${reportData.regional.length} regional records...`);
       
-      const regionalInserts = reportData.regional.map(regional => ({
+      const regionalInserts = reportData.regional.map((regional: any) => ({
         client_id: clientId,
         month_year: monthYear,
         region: regional.region,
@@ -281,7 +281,7 @@ export async function distributeReportData(
     if (reportData.devices && reportData.devices.length > 0) {
       console.log(`📱 Distributing ${reportData.devices.length} device records...`);
       
-      const deviceInserts = reportData.devices.map(device => ({
+      const deviceInserts = reportData.devices.map((device: any) => ({
         client_id: clientId,
         month_year: monthYear,
         device_platform: device.device_platform,
@@ -341,7 +341,7 @@ export async function distributeReportData(
     if (reportData.platforms && reportData.platforms.length > 0) {
       console.log(`🖥️ Distributing ${reportData.platforms.length} platform records...`);
       
-      const platformInserts = reportData.platforms.map(platform => ({
+      const platformInserts = reportData.platforms.map((platform: any) => ({
         client_id: clientId,
         month_year: monthYear,
         publisher_platform: platform.publisher_platform,
@@ -402,7 +402,7 @@ export async function distributeReportData(
     if (reportData.adLevel && reportData.adLevel.length > 0) {
       console.log(`🎯 Distributing ${reportData.adLevel.length} ad level records...`);
       
-      const adLevelInserts = reportData.adLevel.map(ad => ({
+      const adLevelInserts = reportData.adLevel.map((ad: any) => ({
         client_id: clientId,
         month_year: monthYear,
         campaign_id: ad.campaign_id,

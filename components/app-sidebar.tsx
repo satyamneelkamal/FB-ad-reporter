@@ -99,15 +99,15 @@ export function AppSidebar({ navigationData, ...props }: AppSidebarProps) {
   const data = navigationData || defaultData
 
   // Convert icon strings to actual icon components
-  const processNavItems = (items: { title: string; url: string; icon: string | React.ComponentType<{ className?: string }> }[]) => {
-    return items.map(item => ({
+  const processNavItems = (items: any[]) => {
+    return items.map((item: any) => ({
       ...item,
       icon: typeof item.icon === 'string' ? iconMap[item.icon] || IconDashboard : item.icon
     }))
   }
 
-  const processDocuments = (items: { title: string; url: string; icon: string | React.ComponentType<{ className?: string }> }[]) => {
-    return items.map(item => ({
+  const processDocuments = (items: any[]) => {
+    return items.map((item: any) => ({
       ...item,
       icon: typeof item.icon === 'string' ? iconMap[item.icon] || IconDatabase : item.icon
     }))

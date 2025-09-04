@@ -139,7 +139,7 @@ export default function DemographicsAnalysisPage() {
         <div>
           <h2 className="text-xl font-semibold mb-4">Age Group Breakdown</h2>
           <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {demographicsData.topPerformingAges.slice(0, 6).map((ageGroup, index) => (
+            {demographicsData.topPerformingAges.slice(0, 6).map((ageGroup: any, index: number) => (
               <Card key={ageGroup.ageGroup}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base font-medium flex items-center gap-2">
@@ -181,7 +181,7 @@ export default function DemographicsAnalysisPage() {
         <div>
           <h2 className="text-xl font-semibold mb-4">Gender Distribution</h2>
           <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-            {Object.entries(demographicsData.genderData).map(([gender, data], index) => (
+            {Object.entries(demographicsData.genderData).map(([gender, data]: [string, any], index: number) => (
               <Card key={gender}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base font-medium flex items-center gap-2">

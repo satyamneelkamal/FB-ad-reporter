@@ -1004,8 +1004,8 @@ export class FacebookAnalytics {
       : 0
     
     // Find top device by spend
-    const topDevice = deviceData?.length > 0 ? 
-      [...deviceData].sort((a, b) => b.spend - a.spend)[0] : undefined
+    const topDevice = deviceData?.length && deviceData.length > 0 ? 
+      [...deviceData].sort((a: any, b: any) => b.spend - a.spend)[0] : undefined
     
     return {
       available: !!(deviceData || platformData),
@@ -1061,7 +1061,7 @@ export class FacebookAnalytics {
         const readablePosition = platformPosition
           .replace(/_/g, ' ')
           .split(' ')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
           .join(' ')
           .replace('Facebook ', '')  // Remove redundant platform prefix
           .replace('Instagram ', '') // Remove redundant platform prefix
@@ -1603,8 +1603,8 @@ export class FacebookAnalytics {
           roiStatus
         }
       })
-      .filter(campaign => campaign.conversions > 0 || campaign.roas > 0)
-      .sort((a, b) => b.roas - a.roas)
+      .filter((campaign: any) => campaign.conversions > 0 || campaign.roas > 0)
+      .sort((a: any, b: any) => b.roas - a.roas)
     
     // Objective-level ROI analysis
     const objectiveGroups = campaigns.reduce((acc: any, campaign: any) => {
@@ -1662,8 +1662,8 @@ export class FacebookAnalytics {
           roas
         }
       })
-      .filter(demo => demo.conversions > 0 || demo.roas > 0)
-      .sort((a, b) => b.roas - a.roas)
+      .filter((demo: any) => demo.conversions > 0 || demo.roas > 0)
+      .sort((a: any, b: any) => b.roas - a.roas)
       .slice(0, 10) : []
     
     // Generate insights

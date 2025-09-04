@@ -357,7 +357,7 @@ export function SmartAudienceProfiler({ audienceData }: SmartAudienceProfilerPro
                     <div>
                       <div className="font-medium">
                         {objective.objective.replace(/_/g, ' ')}
-                        {objective.avgROAS && objective.avgROAS >= 2 ? ' 🏆' : objective.avgROAS >= 1 ? ' 🚀' : objective.avgROAS ? ' 📈' : ''}
+                        {objective.avgROAS && objective.avgROAS >= 2 ? ' 🏆' : objective.avgROAS && objective.avgROAS >= 1 ? ' 🚀' : objective.avgROAS ? ' 📈' : ''}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {objective.avgROAS ? (

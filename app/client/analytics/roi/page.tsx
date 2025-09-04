@@ -269,7 +269,7 @@ export default function ROIAnalysisPage() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {roiData.objectiveROI.map((objective, index) => (
+                {roiData.objectiveROI.map((objective: any, index: number) => (
                   <Card key={objective.objective} className="border">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-base font-medium">
@@ -439,7 +439,7 @@ export default function ROIAnalysisPage() {
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {roiData.demographicROI.map((demo, index) => (
+              {roiData.demographicROI.map((demo: any, index: number) => (
                 <Card key={demo.segment} className="border">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base font-medium">

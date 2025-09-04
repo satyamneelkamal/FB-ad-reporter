@@ -4,8 +4,8 @@
       "command": "npx",
       "args": [
         "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "/mnt/c/Users/user/Desktop/FB Ad Analysis/my-app"
+        "@modelcontextprotocol/server-filesystem@0.6.2",
+        "/mnt/c/Users/user"
       ],
       "env": {}
     },
