@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAdminFromRequest } from '@/lib/auth'
-import { db } from '@/lib/supabase'
 import { getStoredClientData, getClientAvailableMonths } from '@/lib/data-storage'
 
 /**

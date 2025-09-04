@@ -5,7 +5,7 @@ import { createAdmin } from '@/lib/auth'
  * Create Admin Endpoint - Uses proper bcrypt hashing
  */
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     console.log('🔧 Creating admin account...')
 

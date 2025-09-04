@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { loginAdmin, createAdmin, generateToken, generateClientToken, getCookieOptions } from '@/lib/auth'
-import { db, supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { authLogger } from '@/lib/logger'
 
 /**
@@ -156,7 +156,7 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE() {
   try {
     authLogger.info('Logout request')
 

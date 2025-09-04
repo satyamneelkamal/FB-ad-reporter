@@ -280,7 +280,7 @@ export async function getStoredClientData(
         collection_date: report.scraped_at,
         data_quality_score: qualityReport.overall_score
       }
-    } catch (error) {
+    } catch {
       qualitySummary = {
         total_records: 0,
         collection_date: report.scraped_at

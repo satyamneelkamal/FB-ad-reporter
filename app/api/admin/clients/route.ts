@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminFromRequest } from '@/lib/auth'
-import { db } from '@/lib/supabase'
+import { db, supabaseAdmin } from '@/lib/supabase'
 import { generateSlug, isValidFacebookAdAccountId } from '@/lib/utils'
 import { adminLogger } from '@/lib/logger'
 

@@ -7,7 +7,7 @@ import { collectAllFacebookData, getDateRange } from '@/lib/facebook-api'
  * POST /api/test-facebook - Test full data collection with optional ad account ID
  */
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     console.log('🧪 Testing Facebook API connectivity...')
 

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminFromRequest } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
-import { collectAllFacebookData } from '@/lib/facebook-api';
-import { storeFacebookDataSeparated } from '@/lib/data-storage-separated';
+import { collectAndStoreClientData } from '@/lib/data-storage';
+import { distributeReportData } from '@/lib/data-distribution';
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,44 +47,71 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse month/year to create date range
-    const [year, month] = monthYear.split('-');
-    const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
-    const endDate = new Date(parseInt(year), parseInt(month), 0);
-
-    const dateRange = {
-      since: startDate.toISOString().split('T')[0],
-      until: endDate.toISOString().split('T')[0]
-    };
-
     try {
-      // Collect Facebook data
-      const reportData = await collectAllFacebookData(
-        client.fb_ad_account_id,
-        dateRange
-      );
+      console.log(`🚀 Starting data collection for client ${client.name} (ID: ${client.id})`);
+      console.log(`📅 Target month: ${monthYear}`);
+      
+      // Use the correct data collection and storage function
+      const result = await collectAndStoreClientData(client, monthYear);
+      
+      console.log(`📊 Data collection result:`, {
+        success: result.success,
+        error: result.error,
+        totalRecords: result.storage_summary?.total_records,
+        monthYear: result.storage_summary?.month_year,
+        qualityScore: result.quality_report?.overall_score
+      });
 
-      // Store in separate normalized tables
-      const storageResult = await storeFacebookDataSeparated(clientId, monthYear, reportData);
-
-      if (!storageResult.success) {
-        console.error('Database storage errors:', storageResult.errors);
+      if (!result.success) {
+        console.error(`❌ Data collection failed for ${client.name}:`, result.error);
         return NextResponse.json(
           { 
-            error: 'Failed to save Facebook data',
-            details: storageResult.errors.join(', ')
+            error: 'Failed to collect and store Facebook data',
+            details: result.error || 'Unknown error',
+            debug: {
+              client_id: client.id,
+              client_name: client.name,
+              month_year: monthYear,
+              validation_result: result.validation_result,
+              storage_summary: result.storage_summary
+            }
           },
           { status: 500 }
         );
       }
 
+      console.log(`✅ Data collection successful for ${client.name}`);
+      
+      // Step 2: Distribute data to separated tables
+      console.log(`📊 Distributing data to separated tables...`);
+      const distributionResult = await distributeReportData(client.id, result.storage_summary?.month_year || monthYear);
+      
+      if (!distributionResult.success) {
+        console.warn(`⚠️ Data distribution had errors:`, distributionResult.errors);
+        // Don't fail the whole operation, just log the warning
+      } else {
+        console.log(`✅ Data distributed to ${distributionResult.tablesUpdated.length} tables: ${distributionResult.tablesUpdated.join(', ')}`);
+      }
+
       return NextResponse.json({
-        message: `Data collection completed! Successfully stored ${storageResult.recordsInserted} records across 6 normalized tables.`,
+        message: `Data collection and distribution completed successfully for ${client.name}!`,
         summary: {
-          totalRecords: storageResult.recordsInserted,
-          dataTypes: 6,
-          monthYear: monthYear,
-          storage: 'separated_tables'
+          totalRecords: result.storage_summary?.total_records || 0,
+          monthYear: result.storage_summary?.month_year || monthYear,
+          qualityScore: result.quality_report?.overall_score || 0,
+          storageTime: result.storage_summary?.storage_time_ms || 0,
+          storage: 'monthly_reports',
+          distribution: {
+            recordsDistributed: distributionResult.recordsDistributed,
+            tablesUpdated: distributionResult.tablesUpdated,
+            success: distributionResult.success
+          }
+        },
+        debug: {
+          client_id: client.id,
+          validation_warnings: result.validation_result?.warnings?.length || 0,
+          data_transformations: result.data_transformations || 'none',
+          distribution_errors: distributionResult.errors
         }
       });
 

@@ -25,7 +25,9 @@
       "Bash(npx shadcn@latest add:*)",
       "Bash(npm install:*)",
       "mcp__supabase__list_tables",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(npx tsc:*)",
+      "Bash(env)"
     ],
     "additionalDirectories": [
       "/mnt/c/Users/user/Desktop"

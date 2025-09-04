@@ -22,7 +22,7 @@ export default async function Home() {
     } else {
       redirect('/client')
     }
-  } catch (error) {
+  } catch {
     // Invalid token, redirect to login
     redirect('/login')
   }

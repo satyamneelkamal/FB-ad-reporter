@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import {
   IconCamera,
   IconChartBar,
@@ -41,7 +42,7 @@ import {
 } from "@/components/ui/sidebar"
 
 // Icon mapping for dynamic navigation
-const iconMap: { [key: string]: any } = {
+const iconMap: { [key: string]: React.ComponentType<{ className?: string }> } = {
   IconDashboard,
   IconUsers,
   IconDatabase,
@@ -98,14 +99,14 @@ export function AppSidebar({ navigationData, ...props }: AppSidebarProps) {
   const data = navigationData || defaultData
 
   // Convert icon strings to actual icon components
-  const processNavItems = (items: any[]) => {
+  const processNavItems = (items: { title: string; url: string; icon: string | React.ComponentType<{ className?: string }> }[]) => {
     return items.map(item => ({
       ...item,
       icon: typeof item.icon === 'string' ? iconMap[item.icon] || IconDashboard : item.icon
     }))
   }
 
-  const processDocuments = (items: any[]) => {
+  const processDocuments = (items: { title: string; url: string; icon: string | React.ComponentType<{ className?: string }> }[]) => {
     return items.map(item => ({
       ...item,
       icon: typeof item.icon === 'string' ? iconMap[item.icon] || IconDatabase : item.icon
@@ -121,10 +122,10 @@ export function AppSidebar({ navigationData, ...props }: AppSidebarProps) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="/">
+              <Link href="/">
                 <IconInnerShadowTop className="!size-5" />
                 <span className="text-base font-semibold">Facebook Ads Dashboard</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

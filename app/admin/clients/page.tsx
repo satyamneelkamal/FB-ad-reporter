@@ -113,7 +113,7 @@ export default function AdminClientsPage() {
       } else {
         setError(data.error || 'Failed to load clients')
       }
-    } catch (error) {
+    } catch {
       setError('Network error loading clients')
     } finally {
       setIsLoading(false)
@@ -149,7 +149,7 @@ export default function AdminClientsPage() {
       } else {
         setError(data.error || 'Failed to create client')
       }
-    } catch (error) {
+    } catch {
       setError('Network error creating client')
     }
   }
@@ -169,7 +169,7 @@ export default function AdminClientsPage() {
       } else {
         setError(data.error || 'Failed to fetch Facebook accounts')
       }
-    } catch (error) {
+    } catch {
       setError('Network error fetching Facebook accounts')
     } finally {
       setIsFetchingAccounts(false)

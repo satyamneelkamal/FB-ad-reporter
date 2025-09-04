@@ -16,7 +16,6 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
-  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -46,7 +45,7 @@ export default function LoginPage() {
         setError(data.error || 'Login failed')
         setIsLoading(false)
       }
-    } catch (error) {
+    } catch {
       setError('Network error. Please try again.')
       setIsLoading(false)
     }
