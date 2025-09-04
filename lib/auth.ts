@@ -151,53 +151,21 @@ export async function getClientFromRequest(request: NextRequest): Promise<{
       return { success: false, error: 'Client access required' }
     }
 
-    // First try to find client by user_id
-    const userId = payload.userId || payload.id  // Handle both formats
-    console.log(`🔍 Looking for client with user_id: ${userId}`)
+    // Since clients table doesn't have user_id linking,
+    // we'll use the client_id from the JWT token directly
+    const clientId = payload.clientId
+    console.log(`🔍 Looking for client with id: ${clientId}`)
     
     let { data: client, error } = await supabaseAdmin
       .from('clients')
-      .select('id, name, slug, status, user_id')
-      .eq('user_id', userId)
+      .select('id, name, slug, status')
+      .eq('id', clientId)
       .eq('status', 'active')
       .single()
 
-    // If no client found by user_id, try to find and link by email
-    if (error && error.code === 'PGRST116') {
-      console.log(`No client found for user_id ${userId}, attempting email-based linking...`)
-      
-      // Look for a client that might match this user's email pattern
-      // This is a fallback for existing clients that weren't properly linked
-      const { data: possibleClients, error: searchError } = await supabaseAdmin
-        .from('clients')
-        .select('id, name, slug, status, user_id')
-        .eq('status', 'active')
-        .is('user_id', null) // Only unlinked clients
-
-      if (!searchError && possibleClients && possibleClients.length > 0) {
-        // For demo purposes, link the first available unlinked client
-        // In production, you'd want more sophisticated matching logic
-        const clientToLink = possibleClients[0]
-        
-        console.log(`Linking client ${clientToLink.id} (${clientToLink.name}) to user ${payload.email}`)
-        
-        // Update the client to link it to this user
-        const { data: linkedClient, error: linkError } = await supabaseAdmin
-          .from('clients')
-          .update({ user_id: userId })
-          .eq('id', clientToLink.id)
-          .select()
-          .single()
-
-        if (!linkError && linkedClient) {
-          client = linkedClient
-          error = null
-          console.log(`✅ Successfully linked client ${linkedClient.name} to user ${payload.email}`)
-        }
-      }
-    }
-
+    // If client not found, return error
     if (error || !client) {
+      console.log(`❌ Client not found for client_id ${clientId}:`, error?.message || 'No client data')
       return { success: false, error: 'Client not found or inactive' }
     }
 
