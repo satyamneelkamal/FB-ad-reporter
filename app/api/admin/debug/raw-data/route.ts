@@ -11,10 +11,10 @@ export async function GET(request: NextRequest) {
   try {
     // Verify admin authentication
     const adminResult = await getAdminFromRequest(request)
-    if (!adminResult.success) {
+    if (!adminResult || !adminResult.success) {
       return NextResponse.json({
         success: false,
-        error: adminResult.error
+        error: adminResult?.error || 'Authentication failed'
       }, { status: 401 })
     }
 
