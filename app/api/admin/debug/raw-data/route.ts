@@ -10,11 +10,11 @@ import { getFacebookDataSeparated } from '@/lib/data-storage-separated'
 export async function GET(request: NextRequest) {
   try {
     // Verify admin authentication
-    const adminResult = await getAdminFromRequest(request)
-    if (!adminResult || !adminResult.success) {
+    const admin = await getAdminFromRequest(request)
+    if (!admin) {
       return NextResponse.json({
         success: false,
-        error: adminResult?.error || 'Authentication failed'
+        error: 'Authentication failed'
       }, { status: 401 })
     }
 
