@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
         regional_count: result.regional.length,
         devices_count: result.devices.length,
         platforms_count: result.platforms.length,
-        hourly_count: result.hourly.length,
+        // hourly_count: removed from API,
         adLevel_count: result.adLevel.length
       },
       // Include first record from each category for verification (without sensitive data)

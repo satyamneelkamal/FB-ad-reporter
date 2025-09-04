@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
         debug: {
           client_id: client.id,
           validation_warnings: result.validation_result?.warnings?.length || 0,
-          data_transformations: result.data_transformations || 'none',
+          data_transformations: result.transformations || 'none',
           distribution_errors: distributionResult.errors
         }
       });

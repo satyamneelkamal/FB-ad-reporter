@@ -10,11 +10,11 @@ import { supabaseAdmin } from '@/lib/supabase'
 export async function POST(request: NextRequest) {
   try {
     // Verify admin authentication
-    const adminResult = await getAdminFromRequest(request)
-    if (!adminResult.success) {
+    const admin = await getAdminFromRequest(request)
+    if (!admin) {
       return NextResponse.json({
         success: false,
-        error: adminResult.error
+        error: 'Authentication failed'
       }, { status: 401 })
     }
 

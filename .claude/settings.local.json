@@ -27,7 +27,8 @@
       "mcp__supabase__list_tables",
       "Bash(npm run build:*)",
       "Bash(npx tsc:*)",
-      "Bash(env)"
+      "Bash(env)",
+      "Bash(git add:*)"
     ],
     "additionalDirectories": [
       "/mnt/c/Users/user/Desktop"

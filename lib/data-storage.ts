@@ -276,7 +276,7 @@ export async function getStoredClientData(
     try {
       const qualityReport = generateDataQualityReport(report.report_data as ValidatedFacebookData)
       qualitySummary = {
-        total_records: report.report_data.collection_summary?.total_records || 0,
+        total_records: (report.report_data as any).collection_summary?.total_records || 0,
         collection_date: report.scraped_at,
         data_quality_score: qualityReport.overall_score
       }

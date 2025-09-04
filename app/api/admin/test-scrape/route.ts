@@ -169,9 +169,9 @@ export async function GET(request: NextRequest) {
             platforms_count: result.report!.report_data.platforms?.length || 0,
             hourly_count: result.report!.report_data.hourly?.length || 0,
             adLevel_count: result.report!.report_data.adLevel?.length || 0,
-            total_records: result.report!.report_data.collection_summary?.total_records || 0,
-            successful_endpoints: result.report!.report_data.collection_summary?.successful_endpoints || 0,
-            failed_endpoints: result.report!.report_data.collection_summary?.failed_endpoints || []
+            total_records: (result.report!.report_data as any).collection_summary?.total_records || 0,
+            successful_endpoints: (result.report!.report_data as any).collection_summary?.successful_endpoints || 0,
+            failed_endpoints: (result.report!.report_data as any).collection_summary?.failed_endpoints || []
           }
         },
         quality_summary: result.quality_summary
@@ -196,8 +196,8 @@ export async function GET(request: NextRequest) {
         latest_scrape: latestReport ? {
           month_year: latestReport.month_year,
           scraped_at: latestReport.scraped_at,
-          total_records: latestReport.report_data.collection_summary?.total_records || 0,
-          successful_endpoints: latestReport.report_data.collection_summary?.successful_endpoints || 0
+          total_records: (latestReport.report_data as any).collection_summary?.total_records || 0,
+          successful_endpoints: (latestReport.report_data as any).collection_summary?.successful_endpoints || 0
         } : null,
         available_months: reports.length
       })
