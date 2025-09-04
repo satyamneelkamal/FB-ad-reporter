@@ -53,38 +53,42 @@ export async function POST(request: NextRequest) {
       })
       
       if (authData.user && !authError) {
-        // For now, since clients table doesn't have user_id linking,
-        // we'll use the first available client or create a basic client context
-        // This allows existing Supabase Auth users to login successfully
-        
-        const { data: availableClients, error: clientsError } = await supabase
+        // Find the client associated with this user's UUID
+        const { data: userClient, error: clientsError } = await supabase
           .from('clients')
           .select('id, name, slug')
+          .eq('user_id', authData.user.id)
           .eq('status', 'active')
-          .limit(1)
+          .single()
         
-        let clientId = 1; // Default client ID
-        if (availableClients && availableClients.length > 0) {
-          clientId = availableClients[0].id;
+        if (clientsError || !userClient) {
+          authLogger.warn('No client found for user', { 
+            user_id: authData.user.id, 
+            email,
+            error: clientsError?.message
+          })
+          return NextResponse.json(
+            { error: 'No associated client account found. Please contact your administrator.' },
+            { status: 403 }
+          )
         }
         
         authLogger.info('Client login successful', { 
           user_id: authData.user.id, 
           email,
-          assigned_client_id: clientId
+          client_id: userClient.id,
+          client_name: userClient.name
         })
         
-        // Generate client token with client context
-        const userToken = generateClientToken(authData.user, clientId)
+        // Generate client token with proper client context
+        const userToken = generateClientToken(authData.user, userClient.id)
         
         authLogger.adminAction(email, 'user_login_success', { 
           user_id: authData.user.id,
-          client_id: clientId
+          client_id: userClient.id
         })
         
-        const clientName = availableClients && availableClients.length > 0 
-          ? availableClients[0].name 
-          : 'Default Client'
+        const clientName = userClient.name
         
         const response = NextResponse.json({
           success: true,
@@ -93,7 +97,7 @@ export async function POST(request: NextRequest) {
             email: authData.user.email,
             name: authData.user.user_metadata?.name || clientName || authData.user.email,
             role: 'client',
-            clientId: clientId,
+            clientId: userClient.id,
             clientName: clientName
           },
           redirect: '/client'

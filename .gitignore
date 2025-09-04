@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Security - Files that may contain tokens/keys
+*cookies*.txt
+*token*.txt
+*secret*.txt
+client_cookies.txt

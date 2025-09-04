@@ -3,7 +3,7 @@ fetch('http://localhost:3000/api/client/analytics', {
   method: 'GET',
   headers: {
     'Content-Type': 'application/json',
-    'Cookie': 'auth-token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJlZmQ4MmE3OS1kMzA0LTRiZGQtODE1YS04ZTczNzY1YmVlMWQiLCJlbWFpbCI6ImFua3VyQGZvdG9wbGFuZS5jb20iLCJyb2xlIjoiY2xpZW50IiwiY2xpZW50SWQiOjksImlhdCI6MTc1NjQ0ODUzNCwiZXhwIjoxNzU3MDUzMzM0LCJpc3MiOiJmYWNlYm9vay1hZHMtZGFzaGJvYXJkIn0.UpayrphzAq2PyRuMgS9qiXpSf25Un6ACFY26MhdRhtg'
+    'Cookie': 'auth-token=YOUR_TOKEN_HERE' // Replace with actual token when testing
   }
 })
 .then(response => response.json())
