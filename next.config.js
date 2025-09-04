@@ -9,15 +9,21 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: false,
   },
-  // Disable static optimization for problematic pages
-  output: 'standalone',
-  // Handle build issues with error pages
+  // Handle static page generation issues
+  trailingSlash: false,
   generateBuildId: async () => {
     return 'build-' + Date.now();
   },
+  // Skip static generation for error pages during build
+  async generateStaticParams() {
+    return [];
+  },
   // Webpack configuration to handle potential module issues
   webpack: (config, { buildId, dev, isServer, defaultLoaders, nextRuntime, webpack }) => {
-    // Handle any webpack-specific issues
+    // Ensure proper module resolution
+    config.resolve.alias = {
+      ...config.resolve.alias,
+    };
     return config;
   },
 };
