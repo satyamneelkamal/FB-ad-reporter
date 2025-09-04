@@ -85,14 +85,37 @@ middleware.ts          # Route protection
 5. **Platform Breakdown**: Publisher platform position data  
 6. **Ad-Level Performance**: Individual ad metrics and performance
 
-### ROI & Conversion Tracking (NEW)
-- **Real Facebook Conversions**: Extract purchase data from `actions` array (purchase, omni_purchase, fb_pixel_purchase)
+### ROI & Conversion Tracking (E-COMMERCE ONLY)
+- **Purchase Conversions Only**: Extract purchase data from `actions` array (purchase, omni_purchase, fb_pixel_purchase)
+- **E-Commerce Focus**: Current implementation optimized for online retail businesses
 - **Revenue Attribution**: Process conversion values from `action_values` array with attribution windows
 - **ROAS Calculations**: Utilize Facebook's `purchase_roas` field for accurate return on ad spend
 - **Demographic ROI**: Age/gender performance analysis showing conversion rates and revenue by segment
 - **Campaign ROI**: Individual campaign ROAS with cost per conversion metrics
+- **Lead Campaign Limitation**: Lead generation campaigns not supported in ROI calculations
+- **Service Business Gap**: Non-e-commerce clients see "ROI Tracking Not Available"
 
 *Note: Hourly performance data was removed to reduce database load while maintaining all essential analytics capabilities.*
+
+### ROI System Current Limitations
+- **Purchase-Only ROI**: Current ROI dashboard only supports e-commerce purchase conversions
+- **Lead Campaign Gap**: Service businesses with lead-generation campaigns show "ROI Tracking Not Available"
+- **Supported Conversion Types**: purchase, omni_purchase, fb_pixel_purchase only
+- **Missing Lead Support**: lead, fb_pixel_lead, messaging conversions not included in ROI calculations
+
+#### Client Data Breakdown (Current Database)
+- **Ankur Shop (Client 9)**: E-commerce with purchase conversions (176+ conversions, ₹66,915 revenue)
+- **Lawyerds RDA (Client 37)**: Lead generation with 737+ leads, ₹615K spend, NO purchase data
+- **Other Clients**: Mixed data availability based on campaign objectives
+
+#### ROI Data Availability:
+- **Purchase Data**: Available for e-commerce clients only
+- **Lead Data**: Collected but not processed for ROI calculations  
+- **App Install Data**: Limited app_site_visit actions, no actual install tracking
+
+#### Affected Client Types:
+- **E-Commerce Clients** (like Ankur): ✅ Full ROI/ROAS data available
+- **Service/Lead-Gen Clients** (like Lawyerds): ❌ ROI dashboard shows "not available"
 
 ### Data Processing Intelligence
 **Advanced Facebook API Data Handling:**
@@ -293,6 +316,9 @@ npx shadcn@latest add [component-name]  # Add shadcn/ui components
 3. **Facebook API**: Regenerate access token, verify `ads_read` permissions
 4. **Authentication**: Test with provided credentials, check JWT_SECRET is set
 5. **Build Errors**: Run `npm run build` to check TypeScript issues
+6. **"ROI Tracking Not Available"**: Client has lead-generation campaigns instead of e-commerce
+7. **No Purchase Data**: Service businesses need lead-based ROI implementation
+8. **App Download ROI**: App install tracking not currently supported
 
 ### Authentication Test
 ```bash
@@ -381,10 +407,12 @@ DELETE FROM monthly_reports WHERE scraped_at < NOW() - INTERVAL '2 years';
 ### 🔄 Next Steps (Priority Order)
 
 #### Current Focus (Phase 7)
-1. **Enhanced Error Handling**: Improve user feedback for data collection edge cases
-2. **Performance Optimization**: Optimize data processing and chart rendering
-3. **Testing Coverage**: Add comprehensive test suite for data processing logic
-4. **Mobile Responsiveness**: Ensure all dashboards work perfectly on mobile devices
+1. **Lead-Based ROI Enhancement**: Extend ROI dashboard for service businesses (Lawyerds issue resolution)
+2. **Multi-Conversion Support**: Add lead, messaging, app install ROI calculations
+3. **Enhanced Error Handling**: Improve user feedback for data collection edge cases
+4. **Performance Optimization**: Optimize data processing and chart rendering
+5. **Testing Coverage**: Add comprehensive test suite for data processing logic
+6. **Mobile Responsiveness**: Ensure all dashboards work perfectly on mobile devices
 
 #### Future Enhancements (Phase 8)
 - PDF/CSV export functionality for client reports
@@ -435,6 +463,7 @@ Use provided credentials to test both user types:
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 2.11.0 | 2025-09-04 | 📋 **ROI SYSTEM LIMITATION ANALYSIS**: Documented current ROI system scope and client data breakdown |
 | 2.10.0 | 2025-09-03 | 🎯 **SMART AUDIENCE PROFILER ROAS ENHANCEMENT**: Complete ROAS-first redesign with AI-powered optimization |
 | 2.9.0 | 2025-09-03 | 🚀 **ROI & ROAS IMPLEMENTATION**: Real Facebook conversion tracking with demographic ROI analysis |
 | 2.8.0 | 2025-09-02 | 🚀 **SEPARATED TABLES ARCHITECTURE**: Eliminated analytics cache, direct separated table access |
@@ -446,6 +475,18 @@ Use provided credentials to test both user types:
 | 2.2.0 | 2025-01-22 | ✅ Enhanced Facebook API with validation and testing |
 | 2.1.0 | 2025-01-22 | ✅ Database setup, core libraries, Facebook API integration |
 | 2.0.0 | 2025-01-XX | **Major Rewrite**: Migrated from N8N to Next.js App Router |
+
+### v2.11.0 ROI System Limitation Analysis
+- **ROI System Documentation**: Complete analysis and documentation of current ROI dashboard limitations
+- **Client Data Breakdown**: Detailed analysis of Ankur (e-commerce) vs Lawyerds (lead-gen) data availability
+- **Conversion Type Analysis**: Documented purchase vs lead vs app install data support status
+- **System Scope Clarification**: Updated documentation to reflect e-commerce focus of current ROI implementation
+- **Lead Campaign Gap Identification**: Documented why Lawyerds shows "ROI Tracking Not Available" 
+- **Troubleshooting Enhancement**: Added specific ROI-related troubleshooting steps
+- **Roadmap Update**: Added lead-based ROI enhancement to Phase 7 priorities
+- **Client Type Expectations**: Clear documentation of which client types can access ROI features
+- **Data Availability Matrix**: Comprehensive breakdown of conversion data by client and campaign type
+- **Future Enhancement Planning**: Prepared foundation for multi-conversion ROI system implementation
 
 ### v2.10.0 Smart Audience Profiler ROAS Enhancement
 - **Complete ROAS-First Redesign**: Transformed Smart Audience Profiler from engagement-focused to ROI-focused business intelligence tool

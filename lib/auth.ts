@@ -156,7 +156,7 @@ export async function getClientFromRequest(request: NextRequest): Promise<{
     const clientId = payload.clientId
     console.log(`🔍 Looking for client with id: ${clientId}`)
     
-    let { data: client, error } = await supabaseAdmin
+    const { data: client, error } = await supabaseAdmin
       .from('clients')
       .select('id, name, slug, status')
       .eq('id', clientId)
