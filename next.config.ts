@@ -10,12 +10,6 @@ const nextConfig: NextConfig = {
     // Temporarily disable ESLint errors during build
     ignoreDuringBuilds: true,
   },
-  // Disable static page generation completely to avoid Html import issues
-  generateStaticParams: false,
-  // Force all pages to be dynamic
-  experimental: {
-    ppr: false,
-  },
 };
 
 export default nextConfig;

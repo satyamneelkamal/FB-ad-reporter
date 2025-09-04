@@ -8,7 +8,7 @@ import {
   IconUserCircle,
 } from "@tabler/icons-react"
 import { Moon, Sun } from "lucide-react"
-import { useTheme } from "next-themes"
+// import { useTheme } from "next-themes"
 
 import {
   Avatar,
@@ -41,7 +41,7 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
-  const { theme, setTheme } = useTheme()
+  // const { theme, setTheme } = useTheme()
 
   const handleLogout = async () => {
     try {
