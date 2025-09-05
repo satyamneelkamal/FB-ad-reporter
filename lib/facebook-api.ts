@@ -439,12 +439,12 @@ function validateAdAccountId(adAccountId: string): boolean {
  * Note: Hourly data collection removed to reduce database load
  */
 export async function collectAllFacebookData(adAccountId: string, dateRange: FacebookDateRange): Promise<{
-  campaigns: any[];
-  demographics: any[];
-  regional: any[];
-  devices: any[];
-  platforms: any[];
-  adLevel: any[];
+  campaigns: unknown[];
+  demographics: unknown[];
+  regional: unknown[];
+  devices: unknown[];
+  platforms: unknown[];
+  adLevel: unknown[];
   scraped_at: string;
   date_range: FacebookDateRange;
   month_identifier: string;

@@ -5,6 +5,24 @@
  * matching the comprehensive structure from stats.md
  */
 
+// Facebook API response types
+interface FacebookActionData {
+  action_type: string;
+  value?: string;
+  '28d_click'?: string;
+  '7d_click'?: string;
+  '1d_click'?: string;
+}
+
+interface FacebookReportData {
+  campaigns?: unknown[];
+  adLevel?: unknown[];
+  demographics?: unknown[];
+  regional?: unknown[];
+  devices?: unknown[];
+  platforms?: unknown[];
+}
+
 export interface OverviewMetrics {
   totalSpend: number
   activeCampaigns: number
@@ -149,7 +167,7 @@ export interface EngagementMetrics {
 
 export interface CampaignTypeAnalysis {
   objective: string
-  campaigns: any[]
+  campaigns: unknown[]
   totalSpend: number
   count: number
   avgSpend: number
@@ -247,11 +265,11 @@ export class FacebookAnalytics {
    * Extract ROAS value from Facebook API JSONB response
    * Facebook returns ROAS data as JSONB array like: [{"action_type":"purchase","value":"2.34"}]
    */
-  static extractROAS(roasData: any): number {
+  static extractROAS(roasData: unknown): number {
     if (!roasData || !Array.isArray(roasData)) return 0
     
     // Find purchase ROAS specifically
-    const purchaseRoas = roasData.find((item: any) => 
+    const purchaseRoas = (roasData as FacebookActionData[]).find((item: FacebookActionData) => 
       item.action_type === 'purchase' || 
       item.action_type === 'offsite_conversion.fb_pixel_purchase' ||
       item.action_type === 'omni_purchase'
@@ -265,10 +283,10 @@ export class FacebookAnalytics {
    * Facebook returns action_values as JSONB array like: [{"action_type":"purchase","value":"150.00"}]
    * Note: actionValuesData param can be either action_values field OR calculate from ROAS*spend
    */
-  static extractConversionValue(actionValuesData: any, purchaseROAS?: any, spend?: number): number {
+  static extractConversionValue(actionValuesData: unknown, purchaseROAS?: unknown, spend?: number): number {
     // First try to get from action_values array
     if (actionValuesData && Array.isArray(actionValuesData)) {
-      const purchaseValue = actionValuesData.find((item: any) => 
+      const purchaseValue = (actionValuesData as FacebookActionData[]).find((item: FacebookActionData) => 
         item.action_type === 'purchase' || 
         item.action_type === 'offsite_conversion.fb_pixel_purchase' ||
         item.action_type === 'omni_purchase'
@@ -296,11 +314,11 @@ export class FacebookAnalytics {
    * Facebook returns actions as JSONB array like: [{"action_type":"purchase","value":"5"}]
    * Note: conversionsData param can be either the separate conversions field OR actions field
    */
-  static extractConversions(actionsData: any): number {
+  static extractConversions(actionsData: unknown): number {
     if (!actionsData || !Array.isArray(actionsData)) return 0
     
     // Find purchase conversions specifically - try multiple action types
-    const purchaseAction = actionsData.find((item: any) => 
+    const purchaseAction = (actionsData as FacebookActionData[]).find((item: FacebookActionData) => 
       item.action_type === 'purchase' || 
       item.action_type === 'offsite_conversion.fb_pixel_purchase' ||
       item.action_type === 'omni_purchase'
@@ -318,10 +336,10 @@ export class FacebookAnalytics {
   /**
    * Extract cost per conversion from Facebook API JSONB response
    */
-  static extractCostPerConversion(costPerConversionData: any): number {
+  static extractCostPerConversion(costPerConversionData: unknown): number {
     if (!costPerConversionData || !Array.isArray(costPerConversionData)) return 0
     
-    const purchaseCost = costPerConversionData.find((item: any) => 
+    const purchaseCost = (costPerConversionData as FacebookActionData[]).find((item: FacebookActionData) => 
       item.action_type === 'purchase' || 
       item.action_type === 'offsite_conversion.fb_pixel_purchase' ||
       item.action_type === 'omni_purchase'
@@ -334,7 +352,7 @@ export class FacebookAnalytics {
    * 📊 OVERVIEW METRICS
    * Calculate high-level performance indicators
    */
-  static calculateOverview(reportData: any): OverviewMetrics {
+  static calculateOverview(reportData: FacebookReportData): OverviewMetrics {
     const campaigns = reportData.campaigns || []
     const adLevel = reportData.adLevel || []
     const demographics = reportData.demographics || []
@@ -381,7 +399,7 @@ export class FacebookAnalytics {
    * 💰 ROI METRICS CALCULATION
    * Calculate overall ROI metrics from campaign, demographics, and ad-level data
    */
-  static calculateROIMetrics(campaigns: any[], demographics: any[], adLevel: any[]): {
+  static calculateROIMetrics(campaigns: unknown[], demographics: unknown[], adLevel: unknown[]): {
     totalConversions: number
     totalConversionValue: number
     averageROAS: number
@@ -470,7 +488,7 @@ export class FacebookAnalytics {
    * 🏆 CAMPAIGN PERFORMANCE
    * Individual campaign breakdowns and analysis
    */
-  static analyzeCampaigns(campaigns: any[], demographics: any[] = [], totalSpend: number = 0): CampaignAnalysis[] {
+  static analyzeCampaigns(campaigns: unknown[], demographics: unknown[] = [], totalSpend: number = 0): CampaignAnalysis[] {
     // Since Facebook API returns spend=0 at campaign level but real spend in demographics (account-level),
     // we'll distribute the total spend proportionally across campaigns or mark as unavailable
     const activeCampaigns = campaigns.filter((c: any) => 
@@ -685,7 +703,7 @@ export class FacebookAnalytics {
    * 📈 ENGAGEMENT METRICS
    * Clicks, impressions, reach, spend and engagement analysis with time-series data
    */
-  static calculateEngagement(campaigns: any[], adLevel: any[], demographics: any[] = [], regional: any[] = [], devices: any[] = []): EngagementMetrics {
+  static calculateEngagement(campaigns: unknown[], adLevel: unknown[], demographics: unknown[] = [], regional: unknown[] = [], devices: unknown[] = []): EngagementMetrics {
     // FIXED: Get real spend from demographics data (where actual spend is recorded)
     const totalSpend = demographics.length > 0 
       ? demographics.reduce((sum: number, demo: any) => sum + parseFloat(demo.spend || '0'), 0)
@@ -731,7 +749,7 @@ export class FacebookAnalytics {
    * 📊 GENERATE TIME SERIES DATA
    * Create daily/weekly aggregated metrics for trend charts
    */
-  static generateTimeSeriesData(demographics: any[], regional: any[], campaigns: any[], adLevel: any[]): Array<{
+  static generateTimeSeriesData(demographics: unknown[], regional: unknown[], campaigns: unknown[], adLevel: unknown[]): Array<{
     date: string
     clicks: number
     impressions: number
@@ -843,7 +861,7 @@ export class FacebookAnalytics {
    * 💰 CAMPAIGN TYPES
    * Group and analyze by campaign objectives
    */
-  static groupByObjective(campaigns: any[]): CampaignTypeAnalysis[] {
+  static groupByObjective(campaigns: unknown[]): CampaignTypeAnalysis[] {
     const totalSpend = campaigns.reduce((sum: number, c: any) => sum + parseFloat(c.spend || '0'), 0)
     
     const grouped = campaigns.reduce((acc: any, campaign: any) => {
@@ -907,7 +925,7 @@ export class FacebookAnalytics {
    * 📊 ENGAGEMENT BY OBJECTIVE
    * Group engagement data by campaign objectives using demographics data
    */
-  static groupEngagementByObjective(campaigns: any[], demographics: any[]): any[] {
+  static groupEngagementByObjective(campaigns: unknown[], demographics: unknown[]): unknown[] {
     // Create a mapping of campaign objectives
     const campaignObjectives: { [key: string]: string } = {}
     campaigns.forEach((campaign: any) => {
@@ -1085,7 +1103,7 @@ export class FacebookAnalytics {
    * 🎯 SMART AUDIENCE PROFILER
    * Cross-analyze demographics, regional, and campaign data for audience insights
    */
-  static processAudienceProfile(demographics: any[], regional: any[], campaigns: any[], devices: any[]): AudienceProfileData {
+  static processAudienceProfile(demographics: unknown[], regional: unknown[], campaigns: unknown[], devices: unknown[]): AudienceProfileData {
     console.log("🎯 Processing audience profile:", { 
       demographics: demographics?.length, 
       regional: regional?.length, 
@@ -1432,7 +1450,7 @@ export class FacebookAnalytics {
    * 🎯 CAMPAIGN-ONLY AUDIENCE PROFILE
    * Create audience insights using only campaign data when demographics/regional unavailable
    */
-  static createCampaignOnlyProfile(campaigns: any[], devices: any[]): AudienceProfileData {
+  static createCampaignOnlyProfile(campaigns: unknown[], devices: unknown[]): AudienceProfileData {
     const totalSpend = campaigns.reduce((sum: number, c: any) => sum + parseFloat(c.spend || '0'), 0)
     
     // Group campaigns by objective
