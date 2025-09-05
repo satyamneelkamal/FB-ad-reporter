@@ -13,7 +13,8 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/api/test-facebook') ||
     pathname === '/' ||
     pathname.startsWith('/_next') ||
-    pathname.startsWith('/favicon')
+    pathname === '/favicon.ico' ||
+    pathname.startsWith('/public/')
   ) {
     return NextResponse.next()
   }
@@ -23,13 +24,16 @@ export function middleware(request: NextRequest) {
 
   if (!token) {
     // Redirect to login if no token
+    console.log('❌ No token found for path:', pathname)
     const loginUrl = new URL('/login', request.url)
     return NextResponse.redirect(loginUrl)
   }
 
   try {
     // Verify and decode token
+    console.log('🎫 Verifying token for path:', pathname, 'Token:', token.substring(0, 50) + '...')
     const payload = verifyToken(token)
+    console.log('✅ Token verified successfully, payload:', payload)
     const userRole = payload.role || 'admin' // Use role from JWT payload
 
     // Route protection based on role
@@ -86,5 +90,4 @@ export const config = {
      */
     '/((?!_next/static|_next/image|favicon.ico|public).*)',
   ],
-  runtime: 'nodejs',
 }

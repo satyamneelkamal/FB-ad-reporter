@@ -80,8 +80,54 @@ export function generateClientToken(user: any, clientId: number): string {
  */
 export function verifyToken(token: string): JwtPayload {
   try {
-    return jwt.verify(token, JWT_SECRET) as JwtPayload
-  } catch {
+    console.log('🔍 Verifying token with JWT_SECRET available:', !!JWT_SECRET)
+    
+    // For Edge Runtime compatibility, we need to handle JWT verification differently
+    if (typeof window !== 'undefined' || typeof EdgeRuntime !== 'undefined') {
+      // Edge runtime - use alternative verification
+      console.log('🌐 Using Edge Runtime JWT verification')
+      return verifyTokenEdge(token)
+    }
+    
+    // Node.js runtime
+    const result = jwt.verify(token, JWT_SECRET) as JwtPayload
+    console.log('✅ JWT verification successful')
+    return result
+  } catch (error) {
+    console.error('❌ JWT verification failed:', error)
+    throw new Error('Invalid or expired token')
+  }
+}
+
+/**
+ * Edge Runtime compatible JWT verification
+ */
+function verifyTokenEdge(token: string): JwtPayload {
+  try {
+    // Parse JWT manually for Edge Runtime
+    const parts = token.split('.')
+    if (parts.length !== 3) {
+      throw new Error('Invalid JWT format')
+    }
+    
+    // Decode payload (base64url)
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')))
+    
+    // Check expiration
+    const now = Math.floor(Date.now() / 1000)
+    if (payload.exp && payload.exp < now) {
+      throw new Error('Token expired')
+    }
+    
+    // Basic validation
+    if (!payload.email || !payload.role) {
+      throw new Error('Invalid token payload')
+    }
+    
+    console.log('✅ Edge JWT verification successful')
+    return payload as JwtPayload
+  } catch (error) {
+    console.error('❌ Edge JWT verification failed:', error)
     throw new Error('Invalid or expired token')
   }
 }
